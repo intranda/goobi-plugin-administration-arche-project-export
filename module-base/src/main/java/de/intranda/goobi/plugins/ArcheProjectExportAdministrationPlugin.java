@@ -10,10 +10,10 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 @PluginImplementation
 @Log4j2
-public class KickStartAdministrationPlugin implements IAdministrationPlugin {
+public class ArcheProjectExportAdministrationPlugin implements IAdministrationPlugin {
 
     @Getter
-    private String title = "intranda_administration_kick_start";
+    private String title = "intranda_administration_arche_project_export";
 
     @Getter
     private String value;
@@ -25,14 +25,14 @@ public class KickStartAdministrationPlugin implements IAdministrationPlugin {
 
     @Override
     public String getGui() {
-        return "/uii/plugin_administration_kick_start.xhtml";
+        return "/uii/plugin_administration_arche_project_export.xhtml";
     }
 
     /**
      * Constructor
      */
-    public KickStartAdministrationPlugin() {
-        log.info("KickStart admnistration plugin started");
+    public ArcheProjectExportAdministrationPlugin() {
+        log.info("ArcheProjectExport admnistration plugin started");
         value = ConfigPlugins.getPluginConfig(title).getString("value", "default value");
     }   
 }

@@ -16,12 +16,12 @@
 						icon="plug"
 						title="msgs[AdministrationForm.administrationPlugin.title]" />
 					<h:panelGroup
-						rendered="#{!LoginForm.hasRole('Plugin_administration_kick_start')} wow">
+						rendered="#{!LoginForm.hasRole('Plugin_administration_arche_project_export')} wow">
 						<h:outputText
 							styleClass="alert alert-danger"
-							value="#{msgs.plugin_administration_missingPermission} Plugin_administration_kick_start"></h:outputText>
+							value="#{msgs.plugin_administration_missingPermission} Plugin_administration_arche_project_export"></h:outputText>
 					</h:panelGroup>
-					<h:form id="actionForm" rendered="#{LoginForm.hasRole('Plugin_administration_kick_start')}">
+					<h:form id="actionForm" rendered="#{LoginForm.hasRole('Plugin_administration_arche_project_export')}">
 						<section:body>
 							hello adminstration plugin: #{AdministrationForm.administrationPlugin.value}
 						</section:body>
