@@ -1,6 +1,76 @@
 <config_plugin>
 	
-	<!-- configuration item as sample -->
-	<value>sample value from config file</value>
+	<!-- list of properties to display -->
+    <!-- each property has a name, a default value (optional), a type (text, textarea, list, boolean, date), select values, if needed -->
+    
+    <property name="contact" default="" type="list">
+        <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
+        <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />        
+    </property>
+    
+    
+        <property name="contributor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list">
+        <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
+        </property>
+        
+                <property name="digitisingAgent" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list">
+        <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
+        </property>
+        
+       <property name="metadataCreator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list">
+        <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
+        </property>
+        
+    <property name="relatedDiscipline" default="" type="list">
+        <select label="" value="" />
+        <select label="History, Archaeology" value="https://arche.acdh.oeaw.ac.at/api/48506" />        
+        <select label="Medical chemistry" value="https://arche.acdh.oeaw.ac.at/api/49514" />
+        <select label="Criminal law" value="https://arche.acdh.oeaw.ac.at/api/49965" />
+        <select label="Numismatics" value="https://arche.acdh.oeaw.ac.at/api/50080" />
+        <select label="Financial law" value="https://arche.acdh.oeaw.ac.at/api/49945" />
+        <select label="Nanoelectronics" value="https://arche.acdh.oeaw.ac.at/api/49440" />
+        <select label="Instrumental studies" value="https://arche.acdh.oeaw.ac.at/api/50232" />
+        <select label="Psychophysiology" value="https://arche.acdh.oeaw.ac.at/api/49525" />
+        <select label="Physics, Astronomy" value="https://arche.acdh.oeaw.ac.at/api/49004" />
+     </property>
+    
+    
+    
+       <property name="description" 
+       default="tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet." 
+       type="textarea"
+       />
+  
 	
+           <property name="subject" 
+       default="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
+                Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod" 
+       type="textarea"
+       />
+       
+       
+       
+           <property name="owner" default="" type="list">
+        <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
+        <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />        
+    </property>
+    
+          <property name="licensor" default="" type="list">
+        <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
+        <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />        
+    </property>
+
+            
+          <property name="depositor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list">
+        <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
+        </property>         
+
+             <property name="curator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list">
+        <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
+        </property>      
+    
+           <property name="rightsHolder" default="https://arche.acdh.oeaw.ac.at/api/21003" type="list">
+        <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />
+        </property>
+    
 </config_plugin>
