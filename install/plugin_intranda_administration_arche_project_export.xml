@@ -3,25 +3,25 @@
 	<!-- list of properties to display -->
     <!-- each property has a name, a default value (optional), a type (text, textarea, list, boolean, date), select values, if needed -->
     
-    <property name="contact" default="" type="list">
+    <property name="contact" default="" type="list"  ttlField="hasContact">
         <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
         <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />        
     </property>
     
     
-        <property name="contributor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list">
+        <property name="contributor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list"  ttlField="hasContributor">
         <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
         </property>
         
-                <property name="digitisingAgent" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list">
+                <property name="digitisingAgent" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasDigitisingAgent">
         <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
         </property>
         
-       <property name="metadataCreator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list">
+       <property name="metadataCreator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasMetadataCreator">
         <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
         </property>
         
-    <property name="relatedDiscipline" default="" type="list">
+    <property name="relatedDiscipline" default="" type="list" ttlField="hasRelatedDiscipline">
         <select label="" value="" />
         <select label="History, Archaeology" value="https://arche.acdh.oeaw.ac.at/api/48506" />        
         <select label="Medical chemistry" value="https://arche.acdh.oeaw.ac.at/api/49514" />
@@ -39,37 +39,39 @@
        <property name="description" 
        default="tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet." 
        type="textarea"
+        ttlField="hasDescription"
        />
   
 	
            <property name="subject" 
        default="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
                 Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod" 
-       type="textarea"
+       type="textarea" 
+       ttlField="hasSubject"
        />
        
        
        
-           <property name="owner" default="" type="list">
+           <property name="owner" default="" type="list" ttlField="hasOwner">
         <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
         <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />        
     </property>
     
-          <property name="licensor" default="" type="list">
+          <property name="licensor" default="" type="list" ttlField="hasLicensor">
         <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
         <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />        
     </property>
 
             
-          <property name="depositor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list">
+          <property name="depositor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasDepositor">
         <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
         </property>         
 
-             <property name="curator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list">
+             <property name="curator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasCurator">
         <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
         </property>      
     
-           <property name="rightsHolder" default="https://arche.acdh.oeaw.ac.at/api/21003" type="list">
+           <property name="rightsHolder" default="https://arche.acdh.oeaw.ac.at/api/21003" type="list" ttlField="hasRightsHolder">
         <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />
         </property>
     
