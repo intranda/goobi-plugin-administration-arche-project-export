@@ -222,15 +222,13 @@
                                 id="select"
                                 styleClass="form-control form-select"
                                 disabled="#{property.showProcessGroupAccessCondition == 'READ'}"
-                                value="#{property.value}"
-                                binding="#{select}">
-                                <f:selectItems
-                                    value="#{property.possibleValues}"
-                                    var="propertys"
-                                    itemLabel="#{propertys}"
-                                    itemValue="#{propertys}" />
-                            </h:selectOneMenu>
-                            <intranda:formHelp msgFor="#{select.clientId}" content="#{msgs.helpPropertyValue}" />
+                                value="#{property.value}">
+                                    <f:selectItems
+                                        value="#{property.possibleValues}"
+                                        var="val"
+                                        itemLabel="#{val.label}"
+                                        itemValue="#val.value}" />
+                                </h:selectOneMenu>
                         </div>
                     </div>
                     

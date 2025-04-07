@@ -3,6 +3,7 @@ package de.intranda.goobi.plugins;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +41,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
     private static final long serialVersionUID = 8616559554562036309L;
 
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     @Getter
     private String title = "intranda_administration_arche_project_export";
 
@@ -134,7 +136,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                 pp.setContainer(property.getContainer());
 
                 for (HierarchicalConfiguration selectItem : hc.configurationsAt("/select")) {
-                    pp.getPossibleValues().add(new SelectItem(selectItem.getString("@label"), selectItem.getString("@value")));
+                    pp.getPossibleValues().add(new SelectItem(selectItem.getString("@value"), selectItem.getString("@label")));
                 }
             }
         }
@@ -164,8 +166,11 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         Model model = createTopCollectionDocument();
 
         // store ttl in destination
-
-        try (OutputStream out = new FileOutputStream("/tmp/" + selectedProject.getTitel() + ".ttl")) {
+        String exportFolder = config.getString("/exportFolder");
+        if (!exportFolder.endsWith("/")) {
+            exportFolder = exportFolder + "/";
+        }
+        try (OutputStream out = new FileOutputStream(exportFolder + selectedProject.getTitel() + ".ttl")) {
             RDFDataMgr.write(out, model, RDFFormat.TURTLE_PRETTY);
         } catch (IOException e) {
             log.error(e);
@@ -189,13 +194,14 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         //        hasIdentifier -> topCollectionIdentifier
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasIdentifier"),
                 model.createResource(topCollectionIdentifier));
-        //        hasPid  -> leave it free
+
+        //        hasPid -> TODO get handle from property, if filled or leave it free
 
         //        hasUrl -> viewer root url https://viewer.acdh.oeaw.ac.at/viewer
-        projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasUrl"), "https://viewer.acdh.oeaw.ac.at/viewer",
+        projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasUrl"), config.getString("/viewerUrl"),
                 XSDDatatype.XSDanyURI);
-        //        hasDescription -> project description (property, config, ...)
 
+        //        hasDescription
         String propertyName = config.getString("/property[@ttlField='hasDescription']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -204,7 +210,9 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
 
-        //        hasLifeCycleStatus -> project active: set to https://vocabs.acdh.oeaw.ac.at/archelifecyclestatus/active Otherwise, https://vocabs.acdh.oeaw.ac.at/archelifecyclestatus/completed
+        //        hasLifeCycleStatus ->
+        // project active: set to https://vocabs.acdh.oeaw.ac.at/archelifecyclestatus/active
+        // Otherwise, https://vocabs.acdh.oeaw.ac.at/archelifecyclestatus/completed
         if (selectedProject.getProjectIsArchived().booleanValue()) {
             projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasLifeCycleStatus"),
                     model.createResource("https://vocabs.acdh.oeaw.ac.at/archelifecyclestatus/active"));
@@ -215,7 +223,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         //        hasUsedSoftware -> Goobi
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasUsedSoftware"), "Goobi");
 
-        //        hasContact -> config
+        //        hasContact
         propertyName = config.getString("/property[@ttlField='hasContact']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -224,7 +232,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
 
-        //        hasContributor -> config
+        //        hasContributor
         propertyName = config.getString("/property[@ttlField='hasContributor']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -233,7 +241,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
 
-        //        hasDigitisingAgent -> config
+        //        hasDigitisingAgent
         propertyName = config.getString("/property[@ttlField='hasDigitisingAgent']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -242,7 +250,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
 
-        //        hasMetadataCreator -> config
+        //        hasMetadataCreator
         propertyName = config.getString("/property[@ttlField='hasMetadataCreator']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -251,7 +259,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
 
-        //        hasRelatedDiscipline -> config, value from https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/
+        //        hasRelatedDiscipline
         propertyName = config.getString("/property[@ttlField='hasRelatedDiscipline']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -260,7 +268,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
 
-        //        hasSubject -> config
+        //        hasSubject
         propertyName = config.getString("/property[@ttlField='hasSubject']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -282,7 +290,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                     XSDDatatype.XSDdate);
         }
 
-        //        hasOwner -> config
+        //        hasOwner
         propertyName = config.getString("/property[@ttlField='hasOwner']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -291,7 +299,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
 
-        //        hasRightsHolder -> Project -> mets rights holder
+        //        hasRightsHolder
         propertyName = config.getString("/property[@ttlField='hasRightsHolder']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -300,7 +308,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
 
-        //        hasLicensor -> config
+        //        hasLicensor
         propertyName = config.getString("/property[@ttlField='hasLicensor']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -308,15 +316,29 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                         gp.getPropertyValue(), languageCode);
             }
         }
-        //        hasLicense -> TODO property
-        projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasLicense"),
-                model.createResource("https://vocabs.acdh.oeaw.ac.at/archelicenses/publicdomain-1-0"));
-        //        hasCreatedStartDate -> TODO project start date as YYYY-MM-DD
-        projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCreatedStartDate"), "2020-01-01", XSDDatatype.XSDdate);
-        //        hasCreatedEndDate -> TODO project end date as YYYY-MM-DD
-        projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCreatedEndDate"), "2023-12-31", XSDDatatype.XSDdate);
 
-        //        hasDepositor -> config
+        //        hasLicense
+        propertyName = config.getString("/property[@ttlField='hasLicense']/@name");
+        for (GoobiProperty gp : selectedProject.getProperties()) {
+            if (gp.getPropertyName().equals(propertyName)) {
+                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasLicense"),
+                        gp.getPropertyValue(), languageCode);
+            }
+        }
+
+        //        hasCreatedStartDate
+        if (selectedProject.getStartDate() != null) {
+            projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCreatedStartDate"),
+                    sdf.format(selectedProject.getStartDate()), XSDDatatype.XSDdate);
+        }
+
+        //        hasCreatedEndDate
+        if (selectedProject.getEndDate() != null) {
+            projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCreatedStartDate"),
+                    sdf.format(selectedProject.getEndDate()), XSDDatatype.XSDdate);
+        }
+
+        //        hasDepositor
         propertyName = config.getString("/property[@ttlField='hasDepositor']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
@@ -324,7 +346,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                         gp.getPropertyValue(), languageCode);
             }
         }
-        //        hasCurator -> config
+        //        hasCurator
         propertyName = config.getString("/property[@ttlField='hasCurator']/@name");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
