@@ -195,7 +195,14 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasIdentifier"),
                 model.createResource(topCollectionIdentifier));
 
-        //        hasPid -> TODO get handle from property, if filled or leave it free
+        //        hasPid ->  get handle from property or leave it free
+        for (GoobiProperty gp : selectedProject.getProperties()) {
+            if ("Handle".equalsIgnoreCase(gp.getPropertyName())) {
+                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasPid"),
+                        gp.getPropertyValue(), XSDDatatype.XSDanyURI);
+                break;
+            }
+        }
 
         //        hasUrl -> viewer root url https://viewer.acdh.oeaw.ac.at/viewer
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasUrl"), config.getString("/viewerUrl"),
