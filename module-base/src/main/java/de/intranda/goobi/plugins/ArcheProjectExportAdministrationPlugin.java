@@ -17,6 +17,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
+import org.goobi.api.rest.ArcheAPI;
 import org.goobi.beans.GoobiProperty;
 import org.goobi.beans.GoobiProperty.PropertyOwnerType;
 import org.goobi.beans.Project;
@@ -29,7 +30,9 @@ import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.sub.goobi.persistence.managers.ProjectManager;
+import io.goobi.api.job.model.TransactionInfo;
 import jakarta.faces.model.SelectItem;
+import jakarta.ws.rs.client.Client;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
@@ -163,22 +166,35 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         }
         // create ttl
 
-        Model model = createTopCollectionDocument();
+        Resource resource = createTopCollectionDocument();
 
-        // store ttl in destination
+        // option to store ttl in local folder
         String exportFolder = config.getString("/exportFolder");
-        if (!exportFolder.endsWith("/")) {
-            exportFolder = exportFolder + "/";
-        }
-        try (OutputStream out = new FileOutputStream(exportFolder + selectedProject.getTitel() + ".ttl")) {
-            RDFDataMgr.write(out, model, RDFFormat.TURTLE_PRETTY);
-        } catch (IOException e) {
-            log.error(e);
+        if (StringUtils.isNotBlank(exportFolder)) {
+            if (!exportFolder.endsWith("/")) {
+                exportFolder = exportFolder + "/";
+            }
+            try (OutputStream out = new FileOutputStream(exportFolder + selectedProject.getTitel() + ".ttl")) {
+                RDFDataMgr.write(out, resource.getModel(), RDFFormat.TURTLE_PRETTY);
+            } catch (IOException e) {
+                log.error(e);
+            }
         }
 
+        // option to upload ttl into arche
+        if (false) {
+            String username = "";
+            String password = "";
+            String baseUrl = "";
+            try (Client client = ArcheAPI.getClient(username, password)) {
+                TransactionInfo ti = ArcheAPI.startTransaction(client, baseUrl);
+                ArcheAPI.uploadMetadata(client, baseUrl, ti, resource);
+                ArcheAPI.finishTransaction(client, baseUrl, ti);
+            }
+        }
     }
 
-    private Model createTopCollectionDocument() {
+    private Resource createTopCollectionDocument() {
         String languageCode = "en";
         Model model = ModelFactory.createDefaultModel();
         // collection name
@@ -362,7 +378,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
 
-        return model;
+        return projectResource;
     }
 
 }
