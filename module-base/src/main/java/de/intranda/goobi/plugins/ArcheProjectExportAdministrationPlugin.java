@@ -18,6 +18,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.goobi.api.rest.ArcheAPI;
+import org.goobi.api.rest.TransactionInfo;
 import org.goobi.beans.GoobiProperty;
 import org.goobi.beans.GoobiProperty.PropertyOwnerType;
 import org.goobi.beans.Project;
@@ -30,7 +31,6 @@ import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.sub.goobi.persistence.managers.ProjectManager;
-import io.goobi.api.job.model.TransactionInfo;
 import jakarta.faces.model.SelectItem;
 import jakarta.ws.rs.client.Client;
 import lombok.Getter;
@@ -154,6 +154,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     }
 
     public void exportProject() {
+
         // save properties
         try {
             for (DisplayProperty dp : displayProperties) {
@@ -182,13 +183,13 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         }
 
         // option to upload ttl into arche
-        if (false) {
-            String username = "";
-            String password = "";
-            String baseUrl = "";
+        if (true) {
+            String username = "admin";
+            String password = "admin";
+            String baseUrl = "http://127.0.0.1/api";
             try (Client client = ArcheAPI.getClient(username, password)) {
                 TransactionInfo ti = ArcheAPI.startTransaction(client, baseUrl);
-                ArcheAPI.uploadMetadata(client, baseUrl, ti, resource);
+                String url = ArcheAPI.uploadMetadata(client, baseUrl, ti, resource);
                 ArcheAPI.finishTransaction(client, baseUrl, ti);
             }
         }
