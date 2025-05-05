@@ -294,6 +294,18 @@
 
                 </ui:repeat>
  <div class="form-actions">
+ 
+ 
+                     <button
+                        jsf:action="#{AdministrationForm.administrationPlugin.testDownload}"
+                        aria-label="#{msgs.plugin_administration_arche_save}"
+                        class="btn btn-blank">
+                        <span
+                            class="fa fa-download"
+                            aria-hidden="true"></span>
+                    </button>
+ 
+ 
                     <button
                         jsf:action="#{AdministrationForm.administrationPlugin.exportProject}"
                         aria-label="#{msgs.plugin_administration_arche_save}"

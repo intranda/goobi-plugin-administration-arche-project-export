@@ -1,5 +1,8 @@
 <config_plugin>
 
+    <!-- if testmode is enabled, the RDF file does skip fields with links to other resources as they might not exist -->
+    <testmode>false</testmode>
+
     <!-- list of properties to display -->
     <!-- each property has a name, a default value (optional), a type (text, textarea, list, boolean, date), select values, if needed -->
 

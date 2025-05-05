@@ -19,6 +19,8 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.goobi.api.rest.ArcheAPI;
 import org.goobi.api.rest.TransactionInfo;
+import org.goobi.api.rest.TurtleReader;
+import org.goobi.api.rest.TurtleWriter;
 import org.goobi.beans.GoobiProperty;
 import org.goobi.beans.GoobiProperty.PropertyOwnerType;
 import org.goobi.beans.Project;
@@ -33,6 +35,8 @@ import de.sub.goobi.persistence.managers.ProcessManager;
 import de.sub.goobi.persistence.managers.ProjectManager;
 import jakarta.faces.model.SelectItem;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.Response;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
@@ -67,8 +71,12 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     private List<DisplayProperty> displayProperties;
 
     private static final String IDENTIFIER_PREFIX = "https://id.acdh.oeaw.ac.at/";
+    private static final String ARCHE_API_STRING = "https://arche.acdh.oeaw.ac.at/api/";
+    private static final String TEST_ARCHE_API_STRING = "http://127.0.0.1/api/";
 
     private XMLConfiguration config;
+
+    private boolean testMode;
 
     /**
      * Constructor
@@ -97,6 +105,8 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             // get configured property names
             config = ConfigPlugins.getPluginConfig(title);
             config.setExpressionEngine(new XPathExpressionEngine());
+
+            testMode = config.getBoolean("/testmode", false);
 
             for (HierarchicalConfiguration hc : config.configurationsAt("/property")) {
                 String propertyName = hc.getString("@name");
@@ -155,6 +165,10 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
     public void exportProject() {
 
+        // TODO check if project has a property for the arche-id
+        // if yes -> PATCH
+        // if no: POST
+
         // save properties
         try {
             for (DisplayProperty dp : displayProperties) {
@@ -190,6 +204,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             try (Client client = ArcheAPI.getClient(username, password)) {
                 TransactionInfo ti = ArcheAPI.startTransaction(client, baseUrl);
                 String url = ArcheAPI.uploadMetadata(client, baseUrl, ti, resource);
+                System.out.println(url);
                 ArcheAPI.finishTransaction(client, baseUrl, ti);
             }
         }
@@ -198,14 +213,21 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     private Resource createTopCollectionDocument() {
         String languageCode = "en";
         Model model = ModelFactory.createDefaultModel();
-        // collection name
-        String topCollectionIdentifier = IDENTIFIER_PREFIX + selectedProject.getTitel();
 
-        model.setNsPrefix("api", "https://arche.acdh.oeaw.ac.at/api/");
         model.setNsPrefix("acdh", "https://vocabs.acdh.oeaw.ac.at/schema#");
 
-        Resource projectResource =
-                model.createResource(topCollectionIdentifier, model.createResource(model.getNsPrefixURI("acdh") + "TopCollection"));
+        // collection name
+        String topCollectionIdentifier = IDENTIFIER_PREFIX + selectedProject.getTitel();
+        Resource projectResource;
+        if (testMode) {
+            projectResource =
+                    model.createResource(TEST_ARCHE_API_STRING, model.createResource(model.getNsPrefixURI("acdh") + "TopCollection"));
+
+        } else {
+            projectResource =
+                    model.createResource(ARCHE_API_STRING, model.createResource(model.getNsPrefixURI("acdh") + "TopCollection"));
+        }
+
         //        hasTitle -> project name
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasTitle"), selectedProject.getTitel(), languageCode);
         //        hasIdentifier -> topCollectionIdentifier
@@ -226,13 +248,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                 XSDDatatype.XSDanyURI);
 
         //        hasDescription
-        String propertyName = config.getString("/property[@ttlField='hasDescription']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasDescription"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasDescription");
 
         //        hasLifeCycleStatus ->
         // project active: set to https://vocabs.acdh.oeaw.ac.at/archelifecyclestatus/active
@@ -248,62 +264,26 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasUsedSoftware"), "Goobi");
 
         //        hasContact
-        propertyName = config.getString("/property[@ttlField='hasContact']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasContact"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasContact");
 
         //        hasContributor
-        propertyName = config.getString("/property[@ttlField='hasContributor']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasContributor"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasContributor");
 
         //        hasDigitisingAgent
-        propertyName = config.getString("/property[@ttlField='hasDigitisingAgent']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasDigitisingAgent"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasDigitisingAgent");
 
         //        hasMetadataCreator
-        propertyName = config.getString("/property[@ttlField='hasMetadataCreator']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasMetadataCreator"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasMetadataCreator");
 
         //        hasRelatedDiscipline
-        propertyName = config.getString("/property[@ttlField='hasRelatedDiscipline']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasRelatedDiscipline"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasRelatedDiscipline");
 
         //        hasSubject
-        propertyName = config.getString("/property[@ttlField='hasSubject']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasSubject"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasSubject");
 
         String query =
                 "select min(value), max(value) from metadata where name = 'PublicationYear' and processid in (select ProzesseId from prozesse where ProjekteID = (Select projekteid from projekte where titel='"
-                        + selectedProject.getTitel() + "')) group by name;";
+                        + selectedProject.getTitel() + "')) and value REGEXP '^[0-9]+$' group by name;";
         @SuppressWarnings("unchecked")
         List<Object> results = ProcessManager.runSQL(query);
         if (!results.isEmpty()) {
@@ -315,40 +295,16 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         }
 
         //        hasOwner
-        propertyName = config.getString("/property[@ttlField='hasOwner']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasOwner"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasOwner");
 
         //        hasRightsHolder
-        propertyName = config.getString("/property[@ttlField='hasRightsHolder']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasRightsHolder"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasRightsHolder");
 
         //        hasLicensor
-        propertyName = config.getString("/property[@ttlField='hasLicensor']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasLicensor"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasLicensor");
 
         //        hasLicense
-        propertyName = config.getString("/property[@ttlField='hasLicense']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasLicense"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasLicense");
 
         //        hasCreatedStartDate
         if (selectedProject.getStartDate() != null) {
@@ -363,23 +319,41 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         }
 
         //        hasDepositor
-        propertyName = config.getString("/property[@ttlField='hasDepositor']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasDepositor"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasDepositor");
+
         //        hasCurator
-        propertyName = config.getString("/property[@ttlField='hasCurator']/@name");
-        for (GoobiProperty gp : selectedProject.getProperties()) {
-            if (gp.getPropertyName().equals(propertyName)) {
-                projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCurator"),
-                        gp.getPropertyValue(), languageCode);
-            }
-        }
+        writePropertyValue(languageCode, model, projectResource, "hasCurator");
 
         return projectResource;
+    }
+
+    private void writePropertyValue(String languageCode, Model model, Resource projectResource, String fieldName) {
+        String propertyName = config.getString("/property[@ttlField='" + fieldName + "']/@name");
+        String propertyType = config.getString("/property[@ttlField='" + fieldName + "']/@ttlType", "literal");
+        for (GoobiProperty gp : selectedProject.getProperties()) {
+            if (gp.getPropertyName().equals(propertyName)) {
+                if ("literal".equalsIgnoreCase(propertyType)) {
+                    projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), fieldName),
+                            gp.getPropertyValue(), languageCode);
+                } else {
+                    projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), fieldName),
+                            model.createResource(gp.getPropertyValue()));
+                }
+            }
+        }
+    }
+
+    public void testDownload() {
+
+        Client client = ClientBuilder.newClient();
+        client.register(TurtleReader.class);
+        client.register(TurtleWriter.class);
+
+        Response response = client.target("http://127.0.0.1/api/10064/metadata").request("text/turtle", "text/turtle;charset=UTF-8").get();
+        Model m = response.readEntity(Model.class);
+
+        System.out.println(m);
+
     }
 
 }
