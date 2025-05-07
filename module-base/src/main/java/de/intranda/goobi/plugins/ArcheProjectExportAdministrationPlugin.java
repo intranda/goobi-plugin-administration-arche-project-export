@@ -3,6 +3,8 @@ package de.intranda.goobi.plugins;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +21,6 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.goobi.api.rest.ArcheAPI;
 import org.goobi.api.rest.TransactionInfo;
-import org.goobi.api.rest.TurtleReader;
-import org.goobi.api.rest.TurtleWriter;
 import org.goobi.beans.GoobiProperty;
 import org.goobi.beans.GoobiProperty.PropertyOwnerType;
 import org.goobi.beans.Project;
@@ -35,8 +35,6 @@ import de.sub.goobi.persistence.managers.ProcessManager;
 import de.sub.goobi.persistence.managers.ProjectManager;
 import jakarta.faces.model.SelectItem;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.core.Response;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
@@ -77,6 +75,17 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     private XMLConfiguration config;
 
     private boolean testMode;
+
+    /*
+    
+    docker stop acdh-repo
+    docker container rm acdh-repo
+    docker run --name acdh-repo -p 80:80 -e CFG_BRANCH=arche -e ADMIN_PSWD='admin' -d acdhch/arche
+    
+    docker start acdh-repo
+    docker exec -ti acdh-repo /bin/bash
+    
+     */
 
     /**
      * Constructor
@@ -203,11 +212,57 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             String baseUrl = "http://127.0.0.1/api";
             try (Client client = ArcheAPI.getClient(username, password)) {
                 TransactionInfo ti = ArcheAPI.startTransaction(client, baseUrl);
-                String url = ArcheAPI.uploadMetadata(client, baseUrl, ti, resource);
-                System.out.println(url);
+                String collectionUri = ArcheAPI.uploadMetadata(client, baseUrl, ti, resource);
+                System.out.println("top collection: " + collectionUri);
+                // add image resource
+                Path imagePath = Paths.get("/opt/digiverso/goobi/metadata/3/images/bergsphi_625017145_media/00000001.jpg");
+                Resource image = createPlaceholderImageResource(collectionUri, imagePath.getFileName().toString());
+                String imageUrl = ArcheAPI.uploadMetadata(client, baseUrl, ti, image);
+                System.out.println("image url: " + imageUrl);
+                // upload image
+                ArcheAPI.uploadBinary(client, imageUrl, ti, imagePath);
+                //                ArcheAPI.uploadBinary(client, imageUrl, ti, imagePath);
                 ArcheAPI.finishTransaction(client, baseUrl, ti);
             }
         }
+    }
+
+    private Resource createPlaceholderImageResource(String collectionUri, String filename) {
+
+        String languageCode = "en";
+        Model model = ModelFactory.createDefaultModel();
+        model.setNsPrefix("acdh", "https://vocabs.acdh.oeaw.ac.at/schema#");
+
+        String topCollectionIdentifier = IDENTIFIER_PREFIX + selectedProject.getTitel();
+
+        String resourceIdentifier = topCollectionIdentifier + "/" + filename;
+
+        Resource resource;
+        if (testMode) {
+            resource =
+                    model.createResource(TEST_ARCHE_API_STRING, model.createResource(model.getNsPrefixURI("acdh") + "Resources"));
+        } else {
+            resource =
+                    model.createResource(ARCHE_API_STRING, model.createResource(model.getNsPrefixURI("acdh") + "TopCollection"));
+        }
+
+        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasTitle"), filename, languageCode);
+        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasIdentifier"),
+                model.createResource(resourceIdentifier));
+        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "isPartOf"),
+                model.createResource(topCollectionIdentifier));
+
+        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCategory"),
+                model.createResource("https://vocabs.acdh.oeaw.ac.at/archecategory/image"));
+
+        writePropertyValue(languageCode, model, resource, "hasOwner");
+        writePropertyValue(languageCode, model, resource, "hasMetadataCreator");
+        writePropertyValue(languageCode, model, resource, "hasCurator");
+        writePropertyValue(languageCode, model, resource, "hasLicensor");
+        writePropertyValue(languageCode, model, resource, "hasRightsHolder");
+        writePropertyValue(languageCode, model, resource, "hasDepositor");
+
+        return resource;
     }
 
     private Resource createTopCollectionDocument() {
@@ -342,18 +397,4 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
     }
-
-    public void testDownload() {
-
-        Client client = ClientBuilder.newClient();
-        client.register(TurtleReader.class);
-        client.register(TurtleWriter.class);
-
-        Response response = client.target("http://127.0.0.1/api/10064/metadata").request("text/turtle", "text/turtle;charset=UTF-8").get();
-        Model m = response.readEntity(Model.class);
-
-        System.out.println(m);
-
-    }
-
 }
