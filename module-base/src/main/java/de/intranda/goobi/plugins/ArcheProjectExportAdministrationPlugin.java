@@ -118,13 +118,13 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             config = ConfigPlugins.getPluginConfig(title);
             config.setExpressionEngine(new XPathExpressionEngine());
 
-            archeUserName = config.getString("/archeUserName");
-            archePassword = config.getString("/archePassword");
-            archeApiUrl = config.getString("/archeApiUrl");
-            archeUrlPropertyName = config.getString("/archeUrlPropertyName");
-            placeholderImage = config.getString("/placeholderImage");
+            archeUserName = config.getString("/api/archeUserName");
+            archePassword = config.getString("/api/archePassword");
+            archeApiUrl = config.getString("/api/archeApiUrl");
+            archeUrlPropertyName = config.getString("/project/archeUrlPropertyName");
+            placeholderImage = config.getString("/project/placeholderImage");
 
-            for (HierarchicalConfiguration hc : config.configurationsAt("/property")) {
+            for (HierarchicalConfiguration hc : config.configurationsAt("/project/property")) {
                 String propertyName = hc.getString("@name");
                 String defaultValue = hc.getString("@default");
                 String displayType = hc.getString("@type", "text");
@@ -155,9 +155,9 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                 pp.setName(propertyName);
                 pp.setContainer("0");
                 pp.setType(org.goobi.production.properties.Type.getTypeByName(displayType));
-                pp.setValidation(config.getString("@validation"));
+                pp.setValidation(hc.getString("@validation"));
 
-                pp.setPattern(config.getString("@pattern", "dd.MM.yyyy"));
+                pp.setPattern(hc.getString("@pattern", "dd.MM.yyyy"));
 
                 displayProperties.add(pp);
                 pp.setProzesseigenschaft(property);
