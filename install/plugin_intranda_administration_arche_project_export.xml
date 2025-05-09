@@ -1,10 +1,24 @@
 <config_plugin>
 
-    <!-- if testmode is enabled, the RDF file does skip fields with links to other resources as they might not exist -->
-    <testmode>true</testmode>
+    <!-- url and credentials -->
+    <!-- leave url blank, if only file export is needed -->
+    <archeApiUrl>http://127.0.0.1/api/</archeApiUrl>
+    <archeUserName>admin</archeUserName>
+    <archePassword>admin</archePassword>
+    
+    <!-- project property name to store the arche url -->
+    <archeUrlPropertyName>ArcheLocation</archeUrlPropertyName>
+    
+    <!-- default image for each project -->
+    <placeholderImage>/opt/digiverso/goobi/xslt/logo.png</placeholderImage>
 
     <!-- list of properties to display -->
-    <!-- each property has a name, a default value (optional), a type (text, textarea, list, boolean, date), select values, if needed -->
+    <!-- each property has  a name, 
+                            a default value (optional), 
+                            a type (text, textarea, list, boolean, date), select values, if needed,
+                            a ttlType (literal or resource)
+        if list was selected: subelement select contains label and actual value
+                            -->
 
     <property name="contact" default="" type="list" ttlField="hasContact" ttlType="resource">
         <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
@@ -90,6 +104,6 @@
     <!-- viewer url -->
     <viewerUrl>https://viewer.acdh.oeaw.ac.at/viewer</viewerUrl>
 
-    <!-- export folder-->
+    <!-- export folder, leave it blank if no file is needed -->
     <exportFolder>/tmp</exportFolder>
 </config_plugin>

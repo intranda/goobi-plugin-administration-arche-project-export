@@ -33,6 +33,7 @@ import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.sub.goobi.persistence.managers.ProjectManager;
+import de.sub.goobi.persistence.managers.PropertyManager;
 import jakarta.faces.model.SelectItem;
 import jakarta.ws.rs.client.Client;
 import lombok.Getter;
@@ -69,12 +70,14 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     private List<DisplayProperty> displayProperties;
 
     private static final String IDENTIFIER_PREFIX = "https://id.acdh.oeaw.ac.at/";
-    private static final String ARCHE_API_STRING = "https://arche.acdh.oeaw.ac.at/api/";
-    private static final String TEST_ARCHE_API_STRING = "http://127.0.0.1/api/";
+
+    private String archeUserName;
+    private String archePassword;
+    private String archeApiUrl;
+    private String archeUrlPropertyName;
+    private String placeholderImage;
 
     private XMLConfiguration config;
-
-    private boolean testMode;
 
     /*
     
@@ -115,7 +118,11 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             config = ConfigPlugins.getPluginConfig(title);
             config.setExpressionEngine(new XPathExpressionEngine());
 
-            testMode = config.getBoolean("/testmode", false);
+            archeUserName = config.getString("/archeUserName");
+            archePassword = config.getString("/archePassword");
+            archeApiUrl = config.getString("/archeApiUrl");
+            archeUrlPropertyName = config.getString("/archeUrlPropertyName");
+            placeholderImage = config.getString("/placeholderImage");
 
             for (HierarchicalConfiguration hc : config.configurationsAt("/property")) {
                 String propertyName = hc.getString("@name");
@@ -174,10 +181,6 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
     public void exportProject() {
 
-        // TODO check if project has a property for the arche-id
-        // if yes -> PATCH
-        // if no: POST
-
         // save properties
         try {
             for (DisplayProperty dp : displayProperties) {
@@ -190,9 +193,74 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         }
         // create ttl
 
-        Resource resource = createTopCollectionDocument();
+        // check if configured property exists
+        // if yes: use this as id and create PATCH request
+        // if not: create new resource with api url and store location after request
 
-        // option to store ttl in local folder
+        String location = null;
+        //  check if project has a property for the arche-id
+        // if yes -> PATCH
+        // if no: POST
+        if (StringUtils.isNotBlank(archeUrlPropertyName)) {
+            for (GoobiProperty gp : selectedProject.getProperties()) {
+                if (gp.getPropertyName().equals(archeUrlPropertyName)) {
+                    location = gp.getPropertyValue();
+                }
+            }
+        }
+        if (location != null) {
+            Resource resource = createTopCollectionDocument(location);
+            saveTurtleOnDisc(resource);
+            if (StringUtils.isNotBlank(archeApiUrl)) {
+                updateExistingResource(resource, location);
+            }
+        } else {
+            Resource resource = createTopCollectionDocument(archeApiUrl);
+
+            // option to store ttl in local folder
+            saveTurtleOnDisc(resource);
+
+            // option to upload ttl into arche
+            if (StringUtils.isNotBlank(archeApiUrl)) {
+
+                ingestNewResource(resource);
+            }
+        }
+    }
+
+    private void updateExistingResource(Resource resource, String location) {
+        try (Client client = ArcheAPI.getClient(archeUserName, archePassword)) {
+            TransactionInfo ti = ArcheAPI.startTransaction(client, archeApiUrl);
+            ArcheAPI.updateMetadata(client, location, ti, resource);
+            ArcheAPI.finishTransaction(client, archeApiUrl, ti);
+        }
+    }
+
+    private void ingestNewResource(Resource resource) {
+        try (Client client = ArcheAPI.getClient(archeUserName, archePassword)) {
+            TransactionInfo ti = ArcheAPI.startTransaction(client, archeApiUrl);
+            String collectionUri = ArcheAPI.uploadMetadata(client, archeApiUrl, ti, resource);
+
+            // store collectionUri in archeUrlPropertyName
+            GoobiProperty archeUrl = new GoobiProperty(PropertyOwnerType.PROJECT);
+            archeUrl.setPropertyName(archeUrlPropertyName);
+            archeUrl.setPropertyValue(collectionUri);
+            archeUrl.setOwner(selectedProject);
+            PropertyManager.saveProperty(archeUrl);
+            selectedProject.getProperties().add(archeUrl);
+
+            System.out.println("top collection: " + collectionUri);
+            // add image resource
+            Path imagePath = Paths.get(placeholderImage);
+            Resource image = createPlaceholderImageResource(collectionUri, imagePath.getFileName().toString());
+            String imageUrl = ArcheAPI.uploadMetadata(client, archeApiUrl, ti, image);
+            // upload image
+            ArcheAPI.uploadBinary(client, imageUrl, ti, imagePath);
+            ArcheAPI.finishTransaction(client, archeApiUrl, ti);
+        }
+    }
+
+    private void saveTurtleOnDisc(Resource resource) {
         String exportFolder = config.getString("/exportFolder");
         if (StringUtils.isNotBlank(exportFolder)) {
             if (!exportFolder.endsWith("/")) {
@@ -202,27 +270,6 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                 RDFDataMgr.write(out, resource.getModel(), RDFFormat.TURTLE_PRETTY);
             } catch (IOException e) {
                 log.error(e);
-            }
-        }
-
-        // option to upload ttl into arche
-        if (true) {
-            String username = "admin";
-            String password = "admin";
-            String baseUrl = "http://127.0.0.1/api";
-            try (Client client = ArcheAPI.getClient(username, password)) {
-                TransactionInfo ti = ArcheAPI.startTransaction(client, baseUrl);
-                String collectionUri = ArcheAPI.uploadMetadata(client, baseUrl, ti, resource);
-                System.out.println("top collection: " + collectionUri);
-                // add image resource
-                Path imagePath = Paths.get("/opt/digiverso/goobi/metadata/3/images/bergsphi_625017145_media/00000001.jpg");
-                Resource image = createPlaceholderImageResource(collectionUri, imagePath.getFileName().toString());
-                String imageUrl = ArcheAPI.uploadMetadata(client, baseUrl, ti, image);
-                System.out.println("image url: " + imageUrl);
-                // upload image
-                ArcheAPI.uploadBinary(client, imageUrl, ti, imagePath);
-                //                ArcheAPI.uploadBinary(client, imageUrl, ti, imagePath);
-                ArcheAPI.finishTransaction(client, baseUrl, ti);
             }
         }
     }
@@ -237,14 +284,8 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
         String resourceIdentifier = topCollectionIdentifier + "/" + filename;
 
-        Resource resource;
-        if (testMode) {
-            resource =
-                    model.createResource(TEST_ARCHE_API_STRING, model.createResource(model.getNsPrefixURI("acdh") + "Resources"));
-        } else {
-            resource =
-                    model.createResource(ARCHE_API_STRING, model.createResource(model.getNsPrefixURI("acdh") + "TopCollection"));
-        }
+        Resource resource =
+                model.createResource(archeApiUrl, model.createResource(model.getNsPrefixURI("acdh") + "Resources"));
 
         resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasTitle"), filename, languageCode);
         resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasIdentifier"),
@@ -265,7 +306,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         return resource;
     }
 
-    private Resource createTopCollectionDocument() {
+    private Resource createTopCollectionDocument(String resourceIdentifier) {
         String languageCode = "en";
         Model model = ModelFactory.createDefaultModel();
 
@@ -273,16 +314,8 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
         // collection name
         String topCollectionIdentifier = IDENTIFIER_PREFIX + selectedProject.getTitel();
-        Resource projectResource;
-        if (testMode) {
-            projectResource =
-                    model.createResource(TEST_ARCHE_API_STRING, model.createResource(model.getNsPrefixURI("acdh") + "TopCollection"));
-
-        } else {
-            projectResource =
-                    model.createResource(ARCHE_API_STRING, model.createResource(model.getNsPrefixURI("acdh") + "TopCollection"));
-        }
-
+        Resource projectResource =
+                model.createResource(resourceIdentifier, model.createResource(model.getNsPrefixURI("acdh") + "TopCollection"));
         //        hasTitle -> project name
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasTitle"), selectedProject.getTitel(), languageCode);
         //        hasIdentifier -> topCollectionIdentifier
