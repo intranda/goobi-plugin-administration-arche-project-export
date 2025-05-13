@@ -187,6 +187,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             for (GoobiProperty gp : selectedProject.getProperties()) {
                 if (gp.getPropertyName().equals(archeConfiguration.getArcheUrlPropertyName())) {
                     location = gp.getPropertyValue();
+                    break;
                 }
             }
         }
@@ -398,8 +399,8 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     }
 
     private void writePropertyValue(String languageCode, Model model, Resource projectResource, String fieldName) {
-        String propertyName = archeConfiguration.getConfig().getString("/property[@ttlField='" + fieldName + "']/@name");
-        String propertyType = archeConfiguration.getConfig().getString("/property[@ttlField='" + fieldName + "']/@ttlType", "literal");
+        String propertyName = archeConfiguration.getConfig().getString("/project/property[@ttlField='" + fieldName + "']/@name");
+        String propertyType = archeConfiguration.getConfig().getString("/project/property[@ttlField='" + fieldName + "']/@ttlType", "literal");
         for (GoobiProperty gp : selectedProject.getProperties()) {
             if (gp.getPropertyName().equals(propertyName)) {
                 if ("literal".equalsIgnoreCase(propertyType)) {
