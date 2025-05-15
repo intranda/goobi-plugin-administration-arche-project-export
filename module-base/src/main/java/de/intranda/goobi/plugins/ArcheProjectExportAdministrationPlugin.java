@@ -214,7 +214,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     private void updateExistingResource(Resource resource, String location) {
         try (Client client = ArcheAPI.getClient(archeConfiguration.getArcheUserName(), archeConfiguration.getArchePassword())) {
             TransactionInfo ti = ArcheAPI.startTransaction(client, archeConfiguration.getArcheApiUrl());
-            ArcheAPI.updateMetadata(client, location, ti, resource);
+            ArcheAPI.updateMetadata(client, location, archeConfiguration.getArcheApiUrl(), resource);
             ArcheAPI.finishTransaction(client, archeConfiguration.getArcheApiUrl(), ti);
         }
     }
@@ -232,7 +232,6 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             PropertyManager.saveProperty(archeUrl);
             selectedProject.getProperties().add(archeUrl);
 
-            System.out.println("top collection: " + collectionUri);
             // add image resource
             Path imagePath = Paths.get(archeConfiguration.getPlaceholderImage());
             Resource image = createPlaceholderImageResource(collectionUri, imagePath.getFileName().toString());
