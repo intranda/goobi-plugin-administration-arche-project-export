@@ -214,7 +214,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     private void updateExistingResource(Resource resource, String location) {
         try (Client client = ArcheAPI.getClient(archeConfiguration.getArcheUserName(), archeConfiguration.getArchePassword())) {
             TransactionInfo ti = ArcheAPI.startTransaction(client, archeConfiguration.getArcheApiUrl());
-            ArcheAPI.updateMetadata(client, location, archeConfiguration.getArcheApiUrl(), resource);
+            ArcheAPI.updateMetadata(client, location, archeConfiguration.getArcheApiUrl(), resource, ti);
             ArcheAPI.finishTransaction(client, archeConfiguration.getArcheApiUrl(), ti);
         }
     }
