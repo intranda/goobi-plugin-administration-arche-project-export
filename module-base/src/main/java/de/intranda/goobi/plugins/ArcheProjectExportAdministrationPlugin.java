@@ -33,6 +33,7 @@ import de.sub.goobi.persistence.managers.ProcessManager;
 import de.sub.goobi.persistence.managers.ProjectManager;
 import de.sub.goobi.persistence.managers.PropertyManager;
 import jakarta.faces.model.SelectItem;
+import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
 import lombok.Getter;
 import lombok.Setter;
@@ -192,10 +193,15 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         }
         if (location != null) {
+
             Resource resource = createTopCollectionDocument(location);
             saveTurtleOnDisc(resource);
             if (StringUtils.isNotBlank(archeConfiguration.getArcheApiUrl())) {
-                updateExistingResource(resource, location);
+                try {
+                    updateExistingResource(resource, location);
+                } catch (ProcessingException e) {
+                    Helper.setFehlerMeldung("Cannot reach arche API");
+                }
             }
         } else {
             Resource resource = createTopCollectionDocument(archeConfiguration.getArcheApiUrl());
@@ -205,8 +211,11 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
             // option to upload ttl into arche
             if (StringUtils.isNotBlank(archeConfiguration.getArcheApiUrl())) {
-
-                ingestNewResource(resource);
+                try {
+                    ingestNewResource(resource);
+                } catch (ProcessingException e) {
+                    Helper.setFehlerMeldung("Cannot reach arche API");
+                }
             }
         }
     }
