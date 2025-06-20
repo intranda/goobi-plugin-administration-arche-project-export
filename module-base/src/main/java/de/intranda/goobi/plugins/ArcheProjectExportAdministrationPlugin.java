@@ -220,11 +220,15 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         }
     }
 
-    private void updateExistingResource(Resource resource, String location) {
+    private boolean updateExistingResource(Resource resource, String location) {
         try (Client client = ArcheAPI.getClient(archeConfiguration.getArcheUserName(), archeConfiguration.getArchePassword())) {
             TransactionInfo ti = ArcheAPI.startTransaction(client, archeConfiguration.getArcheApiUrl());
-            ArcheAPI.updateMetadata(client, location, archeConfiguration.getArcheApiUrl(), resource, ti);
+            if (ArcheAPI.updateMetadata(client, location, archeConfiguration.getArcheApiUrl(), resource, ti) == null) {
+                ArcheAPI.cancelTransaction(client, archeConfiguration.getArcheApiUrl(), ti);
+                return false;
+            }
             ArcheAPI.finishTransaction(client, archeConfiguration.getArcheApiUrl(), ti);
+            return true;
         }
     }
 
@@ -232,6 +236,10 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         try (Client client = ArcheAPI.getClient(archeConfiguration.getArcheUserName(), archeConfiguration.getArchePassword())) {
             TransactionInfo ti = ArcheAPI.startTransaction(client, archeConfiguration.getArcheApiUrl());
             String collectionUri = ArcheAPI.uploadMetadata(client, archeConfiguration.getArcheApiUrl(), ti, resource);
+            if (collectionUri == null) {
+                ArcheAPI.cancelTransaction(client, collectionUri, ti);
+                return;
+            }
 
             // store collectionUri in archeUrlPropertyName
             GoobiProperty archeUrl = new GoobiProperty(PropertyOwnerType.PROJECT);
@@ -246,8 +254,10 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             Resource image = createPlaceholderImageResource(collectionUri, imagePath.getFileName().toString());
             String imageUrl = ArcheAPI.uploadMetadata(client, archeConfiguration.getArcheApiUrl(), ti, image);
             // upload image
-            ArcheAPI.uploadBinary(client, imageUrl, ti, imagePath);
-            ArcheAPI.finishTransaction(client, archeConfiguration.getArcheApiUrl(), ti);
+            if (imageUrl != null) {
+                ArcheAPI.uploadBinary(client, imageUrl, ti, imagePath);
+                ArcheAPI.finishTransaction(client, archeConfiguration.getArcheApiUrl(), ti);
+            }
         }
     }
 
