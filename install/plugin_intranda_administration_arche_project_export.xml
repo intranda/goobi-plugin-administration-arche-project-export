@@ -1,6 +1,112 @@
 <config_plugin>
-	
-	<!-- configuration item as sample -->
-	<value>sample value from config file</value>
-	
+
+    <api>
+        <!-- url and credentials -->
+        <!-- leave url blank, if only file export is needed -->
+        <archeApiUrl>http://127.0.0.1/api/</archeApiUrl>
+        <archeUserName>admin</archeUserName>
+        <archePassword>admin</archePassword>
+    </api>
+    <project>
+        <!-- project property name to store the arche url -->
+        <archeUrlPropertyName>ArcheLocation</archeUrlPropertyName>
+        
+        <!-- default image for each project -->
+        <placeholderImage>/opt/digiverso/goobi/xslt/logo.png</placeholderImage>
+
+        <!-- list of properties to display -->
+        <!-- each property has  a name, 
+                                a default value (optional), 
+                                a type (text, textarea, list, boolean, date), select values, if needed,
+                                a ttlType (literal or resource)
+            if list was selected: subelement select contains label and actual value
+                                -->
+
+        <property name="contact" default="" type="list" ttlField="hasContact" ttlType="resource">
+            <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
+            <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />
+        </property>
+
+
+        <property name="contributor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasContributor" ttlType="resource">
+            <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
+        </property>
+
+        <property name="digitisingAgent" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasDigitisingAgent" ttlType="resource">
+            <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
+        </property>
+
+        <property name="metadataCreator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasMetadataCreator" ttlType="resource">
+            <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
+        </property>
+
+        <!-- values from https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/ -->
+        <property name="relatedDiscipline" default="" type="list" ttlField="hasRelatedDiscipline" ttlType="resource">
+            <select label="" value="" />
+            <select label="History, Archaeology" value="https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/504031" />
+            <select label="Medical chemistry" value="https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/504026" />
+            <select label="Criminal law" value="https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/504022" />
+            <select label="Numismatics" value="https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/504016" />
+            <select label="Financial law" value="https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/504010" />
+            <select label="Nanoelectronics" value="https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/504003" />
+        </property>
+
+
+        <property name="description"
+            default="tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
+            type="textarea"
+            ttlField="hasDescription" ttlType="literal"
+        />
+
+
+        <property name="subject"
+            default="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
+                    Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod"
+            type="textarea"
+            ttlField="hasSubject"
+            ttlType="literal"
+        />
+
+
+        <property name="owner" default="" type="list" ttlField="hasOwner" ttlType="resource">
+            <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
+            <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />
+        </property>
+
+        <property name="licensor" default="" type="list" ttlField="hasLicensor" ttlType="resource">
+            <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
+            <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />
+        </property>
+
+
+        <property name="depositor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasDepositor" ttlType="resource">
+            <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
+        </property>
+
+        <property name="curator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasCurator" ttlType="resource">
+            <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
+        </property>
+
+        <property name="rightsHolder" default="https://arche.acdh.oeaw.ac.at/api/21003" type="list" ttlField="hasRightsHolder" ttlType="resource">
+            <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />
+        </property>
+
+        <!--use values from https://vocabs.acdh.oeaw.ac.at/archelicenses -->
+        <property name="license" default="https://vocabs.acdh.oeaw.ac.at/archelicenses/publicdomain-1-0" type="list" ttlField="hasLicense" ttlType="resource">
+            <select label="Public Domain Mark 1.0 (PDM)" value="https://vocabs.acdh.oeaw.ac.at/archelicenses/publicdomain-1-0" />
+            <select label="Attribution 4.0 International (CC BY 4.0)" value="https://vocabs.acdh.oeaw.ac.at/archelicenses/cc-by-4-0" />
+            <select label="Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)" value="https://vocabs.acdh.oeaw.ac.at/archelicenses/cc-by-nd-4-0" />
+            <select label="Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)" value="https://vocabs.acdh.oeaw.ac.at/archelicenses/cc-by-nc-4-0" />
+            <select label="Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)" value="https://vocabs.acdh.oeaw.ac.at/archelicenses/cc-by-sa-4-0" />
+            <select label="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)" value="https://vocabs.acdh.oeaw.ac.at/archelicenses/cc-by-nc-nd-4-0" />
+            <select label="Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)" value="https://vocabs.acdh.oeaw.ac.at/archelicenses/cc-by-nc-sa-4-0" />
+        </property>
+
+    </project>
+
+    <!-- viewer url -->
+    <viewerUrl>https://viewer.acdh.oeaw.ac.at/viewer</viewerUrl>
+
+    <!-- export folder, leave it blank if no file is needed -->
+    <exportFolder>/tmp</exportFolder>
 </config_plugin>
