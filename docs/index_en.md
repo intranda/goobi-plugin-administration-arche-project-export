@@ -3,6 +3,12 @@ title: ARCHE Project export
 identifier: intranda_administration_arche_project_export
 description: Administration plugin for exporting project information to ARCHE
 published: true
+keywords:
+    - Plugin
+    - Administration
+    - ARCHE
+    - Long Term Archive
+    - Ingest
 ---
 
 ## Introduction
