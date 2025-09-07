@@ -4,6 +4,7 @@ identifier: intranda_administration_arche_project_export
 description: Administration Plugin zum Export von Projektinformationen nach ARCHE
 published: true
 keywords:
+    - Goobi workflow
     - Plugin
     - Administration Plugin
     - ARCHE
