@@ -5,7 +5,7 @@ description: Administration Plugin zum Export von Projektinformationen nach ARCH
 published: true
 keywords:
     - Plugin
-    - Administration
+    - Administration Plugin
     - ARCHE
     - Langzeitarchiv
     - Ingest
