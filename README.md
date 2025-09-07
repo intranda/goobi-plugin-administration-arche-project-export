@@ -12,7 +12,7 @@ More information about the functionality of this plugin and the complete documen
 
 Detail                      | Description
 --------------------------- | ----------------------
-**Plugin identifier**       | intranda_administration_ZZZ
+**Plugin identifier**       | intranda_administration_arche_project_export
 **Plugin type**             | administration
 **Licence**                 | GPL 2.0 or newer
 **Documentation (German)**  | https://docs.goobi.io/workflow-plugins/v/ger/administration/goobi-plugin-administration-arche-project-export
