@@ -184,7 +184,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         //  check if project has a property for the arche-id
         // if yes -> PATCH
         // if no: POST
-        if (StringUtils.isNotBlank(archeConfiguration.getArcheUrlPropertyName())) {
+        if (archeConfiguration.isEnableArcheIngest()) {
             for (GoobiProperty gp : selectedProject.getProperties()) {
                 if (gp.getPropertyName().equals(archeConfiguration.getArcheUrlPropertyName())) {
                     location = gp.getPropertyValue();
