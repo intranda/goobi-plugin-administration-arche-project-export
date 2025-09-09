@@ -196,7 +196,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
             Resource resource = createTopCollectionDocument(location);
             saveTurtleOnDisc(resource);
-            if (StringUtils.isNotBlank(archeConfiguration.getArcheApiUrl())) {
+            if (archeConfiguration.isEnableArcheIngest()) {
                 try {
                     updateExistingResource(resource, location);
                 } catch (ProcessingException e) {
@@ -210,7 +210,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             saveTurtleOnDisc(resource);
 
             // option to upload ttl into arche
-            if (StringUtils.isNotBlank(archeConfiguration.getArcheApiUrl())) {
+            if (archeConfiguration.isEnableArcheIngest()) {
                 try {
                     ingestNewResource(resource);
                 } catch (ProcessingException e) {

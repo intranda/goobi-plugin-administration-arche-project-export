@@ -2,7 +2,6 @@
 
     <api enabled="true">
         <!-- url and credentials -->
-        <!-- leave url blank, if only file export is needed -->
         <archeApiUrl>http://127.0.0.1/api/</archeApiUrl>
         <archeUserName>admin</archeUserName>
         <archePassword>admin</archePassword>
