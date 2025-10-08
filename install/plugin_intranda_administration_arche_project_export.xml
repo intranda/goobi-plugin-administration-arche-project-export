@@ -1,8 +1,7 @@
 <config_plugin>
 
-    <api>
+    <api enabled="true">
         <!-- url and credentials -->
-        <!-- leave url blank, if only file export is needed -->
         <archeApiUrl>http://127.0.0.1/api/</archeApiUrl>
         <archeUserName>admin</archeUserName>
         <archePassword>admin</archePassword>
@@ -22,26 +21,25 @@
             if list was selected: subelement select contains label and actual value
                                 -->
 
-        <property name="contact" default="" type="list" ttlField="hasContact" ttlType="resource">
+        <property name="Contact" default="" type="list" ttlField="hasContact" ttlType="resource">
             <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
             <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />
         </property>
 
-
-        <property name="contributor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasContributor" ttlType="resource">
+        <property name="Contributor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasContributor" ttlType="resource">
             <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
         </property>
 
-        <property name="digitisingAgent" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasDigitisingAgent" ttlType="resource">
+        <property name="Digitising Agent" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasDigitisingAgent" ttlType="resource">
             <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
         </property>
 
-        <property name="metadataCreator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasMetadataCreator" ttlType="resource">
+        <property name="Metadata Creator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasMetadataCreator" ttlType="resource">
             <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
         </property>
 
         <!-- values from https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/ -->
-        <property name="relatedDiscipline" default="" type="list" ttlField="hasRelatedDiscipline" ttlType="resource">
+        <property name="Related Discipline" default="" type="list" ttlField="hasRelatedDiscipline" ttlType="resource">
             <select label="" value="" />
             <select label="History, Archaeology" value="https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/504031" />
             <select label="Medical chemistry" value="https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/504026" />
@@ -51,48 +49,44 @@
             <select label="Nanoelectronics" value="https://vocabs.acdh.oeaw.ac.at/oefosdisciplines/504003" />
         </property>
 
-
-        <property name="description"
+        <property name="Description"
             default="tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
             type="textarea"
             ttlField="hasDescription" ttlType="literal"
         />
 
-
-        <property name="subject"
-            default="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
-                    Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod"
+        <property name="Subject"
+            default="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod"
             type="textarea"
             ttlField="hasSubject"
             ttlType="literal"
         />
 
-
-        <property name="owner" default="" type="list" ttlField="hasOwner" ttlType="resource">
+        <property name="Owner" default="" type="list" ttlField="hasOwner" ttlType="resource">
             <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
             <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />
         </property>
 
-        <property name="licensor" default="" type="list" ttlField="hasLicensor" ttlType="resource">
+        <property name="Licensor" default="" type="list" ttlField="hasLicensor" ttlType="resource">
             <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
             <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />
         </property>
 
 
-        <property name="depositor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasDepositor" ttlType="resource">
+        <property name="Depositor" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasDepositor" ttlType="resource">
             <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
         </property>
 
-        <property name="curator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasCurator" ttlType="resource">
+        <property name="Curator" default="https://arche.acdh.oeaw.ac.at/api/21828" type="list" ttlField="hasCurator" ttlType="resource">
             <select label="Max Mustermann" value="https://arche.acdh.oeaw.ac.at/api/21828" />
         </property>
 
-        <property name="rightsHolder" default="https://arche.acdh.oeaw.ac.at/api/21003" type="list" ttlField="hasRightsHolder" ttlType="resource">
+        <property name="Rights Holder" default="https://arche.acdh.oeaw.ac.at/api/21003" type="list" ttlField="hasRightsHolder" ttlType="resource">
             <select label="Austrian Academy of Sciences" value="https://arche.acdh.oeaw.ac.at/api/21003" />
         </property>
 
         <!--use values from https://vocabs.acdh.oeaw.ac.at/archelicenses -->
-        <property name="license" default="https://vocabs.acdh.oeaw.ac.at/archelicenses/publicdomain-1-0" type="list" ttlField="hasLicense" ttlType="resource">
+        <property name="License" default="https://vocabs.acdh.oeaw.ac.at/archelicenses/publicdomain-1-0" type="list" ttlField="hasLicense" ttlType="resource">
             <select label="Public Domain Mark 1.0 (PDM)" value="https://vocabs.acdh.oeaw.ac.at/archelicenses/publicdomain-1-0" />
             <select label="Attribution 4.0 International (CC BY 4.0)" value="https://vocabs.acdh.oeaw.ac.at/archelicenses/cc-by-4-0" />
             <select label="Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)" value="https://vocabs.acdh.oeaw.ac.at/archelicenses/cc-by-nd-4-0" />

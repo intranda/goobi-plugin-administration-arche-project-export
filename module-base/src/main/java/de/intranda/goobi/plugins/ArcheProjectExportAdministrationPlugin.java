@@ -184,7 +184,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         //  check if project has a property for the arche-id
         // if yes -> PATCH
         // if no: POST
-        if (StringUtils.isNotBlank(archeConfiguration.getArcheUrlPropertyName())) {
+        if (archeConfiguration.isEnableArcheIngest()) {
             for (GoobiProperty gp : selectedProject.getProperties()) {
                 if (gp.getPropertyName().equals(archeConfiguration.getArcheUrlPropertyName())) {
                     location = gp.getPropertyValue();
@@ -196,7 +196,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
             Resource resource = createTopCollectionDocument(location);
             saveTurtleOnDisc(resource);
-            if (StringUtils.isNotBlank(archeConfiguration.getArcheApiUrl())) {
+            if (archeConfiguration.isEnableArcheIngest()) {
                 try {
                     updateExistingResource(resource, location);
                 } catch (ProcessingException e) {
@@ -210,7 +210,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             saveTurtleOnDisc(resource);
 
             // option to upload ttl into arche
-            if (StringUtils.isNotBlank(archeConfiguration.getArcheApiUrl())) {
+            if (archeConfiguration.isEnableArcheIngest()) {
                 try {
                     ingestNewResource(resource);
                 } catch (ProcessingException e) {
