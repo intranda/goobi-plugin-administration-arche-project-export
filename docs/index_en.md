@@ -7,9 +7,6 @@ keywords:
     - Goobi workflow
     - Plugin
     - Administration Plugin
-    - ARCHE
-    - Long Term Archive
-    - Ingest
 ---
 
 ## Introduction
