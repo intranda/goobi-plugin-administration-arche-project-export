@@ -7,9 +7,6 @@ keywords:
     - Goobi workflow
     - Plugin
     - Administration Plugin
-    - ARCHE
-    - Langzeitarchiv
-    - Ingest
 ---
 
 ## Einführung
