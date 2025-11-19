@@ -32,6 +32,9 @@ import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.sub.goobi.persistence.managers.ProjectManager;
 import de.sub.goobi.persistence.managers.PropertyManager;
+import io.goobi.workflow.api.vocabulary.VocabularyAPIManager;
+import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabulary;
+import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabularyRecord;
 import jakarta.faces.model.SelectItem;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
@@ -147,6 +150,29 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                 pp.setValue(property.getPropertyValue());
                 pp.setContainer(property.getContainer());
 
+                if ("vocabularyreference".equals(displayType)) {
+                    String vocabularyName = hc.getString("/vocabulary/@name");
+                    String labelField = hc.getString("/vocabulary/@label");
+                    String valueField = hc.getString("/vocabulary/@value");
+
+                    ExtendedVocabulary currentVocabulary = VocabularyAPIManager.getInstance().vocabularies().findByName(vocabularyName);
+
+                    List<ExtendedVocabularyRecord> recordList = VocabularyAPIManager.getInstance()
+                            .vocabularyRecords()
+                            .list(currentVocabulary.getId())
+                            .all()
+                            .request()
+                            .getContent();
+
+                    for (ExtendedVocabularyRecord rec : recordList) {
+                        String label = rec.getFieldForDefinitionName(labelField).get().getFieldValue();
+                        String value = rec.getFieldForDefinitionName(valueField).get().getFieldValue();
+
+                        pp.getPossibleValues().add(new SelectItem(value, label));
+                    }
+                    pp.setType(org.goobi.production.properties.Type.LIST);
+                }
+
                 for (HierarchicalConfiguration selectItem : hc.configurationsAt("/select")) {
                     pp.getPossibleValues().add(new SelectItem(selectItem.getString("@value"), selectItem.getString("@label")));
                 }
@@ -186,7 +212,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         // if no: POST
         if (archeConfiguration.isEnableArcheIngest(prodIngest)) {
             for (GoobiProperty gp : selectedProject.getProperties()) {
-                if (gp.getPropertyName().equals(archeConfiguration.getArcheUrlPropertyName())) {
+                if (gp.getPropertyName().equals(archeConfiguration.getArcheUrlPropertyName(prodIngest))) {
                     location = gp.getPropertyValue();
                     break;
                 }
@@ -243,7 +269,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
             // store collectionUri in archeUrlPropertyName
             GoobiProperty archeUrl = new GoobiProperty(PropertyOwnerType.PROJECT);
-            archeUrl.setPropertyName(archeConfiguration.getArcheUrlPropertyName());
+            archeUrl.setPropertyName(archeConfiguration.getArcheUrlPropertyName(prodIngest));
             archeUrl.setPropertyValue(collectionUri);
             archeUrl.setOwner(selectedProject);
             PropertyManager.saveProperty(archeUrl);
