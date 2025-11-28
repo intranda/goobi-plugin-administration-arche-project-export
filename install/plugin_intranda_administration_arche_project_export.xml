@@ -1,7 +1,13 @@
 <config_plugin>
 
-    <api enabled="true">
+    <api enabled="false" type="prod">
         <!-- url and credentials -->
+        <!-- leave url blank, if only file export is needed -->
+        <archeApiUrl>http://127.0.0.1/api/</archeApiUrl>
+        <archeUserName>admin</archeUserName>
+        <archePassword>admin</archePassword>
+    </api>
+        <api enabled="true" type="stage">
         <archeApiUrl>http://127.0.0.1/api/</archeApiUrl>
         <archeUserName>admin</archeUserName>
         <archePassword>admin</archePassword>
@@ -20,6 +26,12 @@
                                 a ttlType (literal or resource)
             if list was selected: subelement select contains label and actual value
                                 -->
+
+<!-- 
+        <property name="VocabularySample" default="" type="vocabularyreference" ttlField="VocabularySample" ttlType="resource">
+            <vocabulary name="Location" label="Location" value="Authority Value" /> 
+        </property>
+ -->
 
         <property name="Contact" default="" type="list" ttlField="hasContact" ttlType="resource">
             <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
