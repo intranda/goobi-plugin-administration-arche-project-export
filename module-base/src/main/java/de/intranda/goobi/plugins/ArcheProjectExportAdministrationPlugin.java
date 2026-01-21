@@ -155,6 +155,10 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                     String labelField = hc.getString("/vocabulary/@label");
                     String valueField = hc.getString("/vocabulary/@value");
 
+                    // TODO add button to update configured vocabulary with data from the URI
+                    String skosURI;
+                    String xsltPath;
+
                     ExtendedVocabulary currentVocabulary = VocabularyAPIManager.getInstance().vocabularies().findByName(vocabularyName);
 
                     List<ExtendedVocabularyRecord> recordList = VocabularyAPIManager.getInstance()
