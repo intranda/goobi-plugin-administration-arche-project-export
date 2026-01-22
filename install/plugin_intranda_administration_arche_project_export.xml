@@ -29,7 +29,7 @@
 
 <!-- 
         <property name="VocabularySample" default="" type="vocabularyreference" ttlField="VocabularySample" ttlType="resource">
-            <vocabulary name="Location" label="Location" value="Authority Value" /> 
+            <vocabulary name="Location" label="Location" value="Authority Value" url="https://vocabs.acdh.oeaw.ac.at/rest/v1/arche_licenses/data?format=application/rdf%2Bxml" xslt="/home/robert/git/goobi-plugin-administration-arche-project-export/install/rdf2csv.xsl" /> 
         </property>
  -->
 

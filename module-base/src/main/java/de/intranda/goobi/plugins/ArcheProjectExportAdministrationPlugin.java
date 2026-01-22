@@ -26,12 +26,17 @@ import org.goobi.beans.Project;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IAdministrationPlugin;
 import org.goobi.production.properties.DisplayProperty;
+import org.jdom2.Document;
+import org.jdom2.transform.XSLTransformException;
+import org.jdom2.transform.XSLTransformer;
 
 import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.XmlTools;
 import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.sub.goobi.persistence.managers.ProjectManager;
 import de.sub.goobi.persistence.managers.PropertyManager;
+import io.goobi.workflow.api.connection.HttpUtils;
 import io.goobi.workflow.api.vocabulary.VocabularyAPIManager;
 import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabulary;
 import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabularyRecord;
@@ -155,10 +160,6 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                     String labelField = hc.getString("/vocabulary/@label");
                     String valueField = hc.getString("/vocabulary/@value");
 
-                    // TODO add button to update configured vocabulary with data from the URI
-                    String skosURI;
-                    String xsltPath;
-
                     ExtendedVocabulary currentVocabulary = VocabularyAPIManager.getInstance().vocabularies().findByName(vocabularyName);
 
                     List<ExtendedVocabularyRecord> recordList = VocabularyAPIManager.getInstance()
@@ -174,7 +175,6 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
                         pp.getPossibleValues().add(new SelectItem(value, label));
                     }
-                    pp.setType(org.goobi.production.properties.Type.LIST);
                 }
 
                 for (HierarchicalConfiguration selectItem : hc.configurationsAt("/select")) {
@@ -458,6 +458,36 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                     projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), fieldName),
                             model.createResource(gp.getPropertyValue()));
                 }
+            }
+        }
+    }
+
+    public void updateVocabulary(String fieldName) {
+        HierarchicalConfiguration hc = archeConfiguration.getConfig().configurationAt("/project/property[@name='" + fieldName + "']");
+        String vocabularyName = hc.getString("/vocabulary/@name");
+        String labelField = hc.getString("/vocabulary/@label");
+        String valueField = hc.getString("/vocabulary/@value");
+
+        String skosURI = hc.getString("/vocabulary/@url");
+        String xsltPath = hc.getString("/vocabulary/@xslt");
+
+        // if uri and xslt are configured
+        if (StringUtils.isNotBlank(skosURI) && StringUtils.isNotBlank(xsltPath)) {
+
+            // get data from uri
+            String data = HttpUtils.getStringFromUrl(skosURI);
+
+            // if data is found
+            if (StringUtils.isNotBlank(data)) {
+                try {
+                    Document doc = XmlTools.readDocumentFromString(data);
+                    XSLTransformer transformer = new XSLTransformer(xsltPath);
+                    Document result = transformer.transform(doc);
+                    // TODO replace vocabulary with content from result document
+                } catch (XSLTransformException e) {
+                    log.error(e);
+                }
+
             }
         }
     }
