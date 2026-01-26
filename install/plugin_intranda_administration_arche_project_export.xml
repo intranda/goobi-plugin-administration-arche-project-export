@@ -27,11 +27,16 @@
             if list was selected: subelement select contains label and actual value
                                 -->
 
-<!-- 
+ 
         <property name="VocabularySample" default="" type="vocabularyreference" ttlField="VocabularySample" ttlType="resource">
-            <vocabulary name="Location" label="Location" value="Authority Value" url="https://vocabs.acdh.oeaw.ac.at/rest/v1/arche_licenses/data?format=application/rdf%2Bxml" xslt="/home/robert/git/goobi-plugin-administration-arche-project-export/install/rdf2csv.xsl" /> 
+            <vocabulary 
+            name="Licenses"
+            label="Label"
+            value="URI" 
+            url="https://vocabs.acdh.oeaw.ac.at/rest/v1/arche_licenses/data?format=application/rdf%2Bxml" 
+            xslt="/home/robert/git/goobi-plugin-administration-arche-project-export/install/rdf2csv.xsl" /> 
         </property>
- -->
+
 
         <property name="Contact" default="" type="list" ttlField="hasContact" ttlType="resource">
             <select label="Austrian Centre for Digital Humanities and Cultural Heritage" value="https://arche.acdh.oeaw.ac.at/api/48505" />
