@@ -254,13 +254,16 @@
                             <button
                                 jsf:action="#{AdministrationForm.administrationPlugin.exportProject(true)}"
                                 aria-label="#{msgs.plugin_administration_arche_save_test}"
-                                class="btn btn-success">
-                                <util:icon-text icon="device-floppy" text="#{msgs.plugin_administration_arche_save_test}" />
+                                class="btn btn-blank">
+                                <span>
+                                    <h:outputText value="#{msgs.plugin_administration_arche_save_test}" />
+                                </span>
+
                             </button>
                             <button
                                 jsf:action="#{AdministrationForm.administrationPlugin.exportProject(false)}"
                                 aria-label="#{msgs.plugin_administration_arche_save_prod}"
-                                class="btn btn-success">
+                                class="btn btn-action">
                                 <util:icon-text icon="device-floppy" text="#{msgs.plugin_administration_arche_save_prod}" />
                             </button>
                         </section:footer>
