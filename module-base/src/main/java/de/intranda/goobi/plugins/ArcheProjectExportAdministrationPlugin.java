@@ -1,14 +1,14 @@
 package de.intranda.goobi.plugins;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.goobi.workflow.api.vocabulary.APIException;
+import io.goobi.workflow.api.vocabulary.helper.APIExceptionExtractor;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -32,6 +32,7 @@ import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.sub.goobi.persistence.managers.ProjectManager;
 import de.sub.goobi.persistence.managers.PropertyManager;
+import io.goobi.workflow.api.connection.HttpUtils;
 import io.goobi.workflow.api.vocabulary.VocabularyAPIManager;
 import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabulary;
 import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabularyRecord;
@@ -42,6 +43,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
+
+import javax.xml.transform.*;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 @PluginImplementation
 @Log4j2
@@ -154,29 +159,39 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                     String vocabularyName = hc.getString("/vocabulary/@name");
                     String labelField = hc.getString("/vocabulary/@label");
                     String valueField = hc.getString("/vocabulary/@value");
-
-                    ExtendedVocabulary currentVocabulary = VocabularyAPIManager.getInstance().vocabularies().findByName(vocabularyName);
-
-                    List<ExtendedVocabularyRecord> recordList = VocabularyAPIManager.getInstance()
-                            .vocabularyRecords()
-                            .list(currentVocabulary.getId())
-                            .all()
-                            .request()
-                            .getContent();
-
-                    for (ExtendedVocabularyRecord rec : recordList) {
-                        String label = rec.getFieldForDefinitionName(labelField).get().getFieldValue();
-                        String value = rec.getFieldForDefinitionName(valueField).get().getFieldValue();
-
-                        pp.getPossibleValues().add(new SelectItem(value, label));
-                    }
-                    pp.setType(org.goobi.production.properties.Type.LIST);
+                    initializeProperty(vocabularyName, labelField, valueField, pp);
                 }
 
                 for (HierarchicalConfiguration selectItem : hc.configurationsAt("/select")) {
                     pp.getPossibleValues().add(new SelectItem(selectItem.getString("@value"), selectItem.getString("@label")));
                 }
             }
+        }
+    }
+
+    private static void initializeProperty(String vocabularyName, String labelField, String valueField, DisplayProperty pp) {
+        try {
+            ExtendedVocabulary currentVocabulary = VocabularyAPIManager.getInstance().vocabularies().findByName(vocabularyName);
+
+            List<ExtendedVocabularyRecord> recordList = VocabularyAPIManager.getInstance()
+                    .vocabularyRecords()
+                    .list(currentVocabulary.getId())
+                    .all()
+                    .request()
+                    .getContent();
+
+            pp.getPossibleValues().clear();
+            for (ExtendedVocabularyRecord rec : recordList) {
+                String label = rec.getFieldForDefinitionName(labelField).get().getFieldValue();
+                String value = rec.getFieldForDefinitionName(valueField).get().getFieldValue();
+
+                pp.getPossibleValues().add(new SelectItem(value, label));
+            }
+        } catch (APIException e) {
+            APIExceptionExtractor extractor = new APIExceptionExtractor(e);
+            String message = "Failed to load vocabulary \"" + vocabularyName + "\" records, Reason: \n" + extractor.getLocalizedMessage(Helper.getSessionLocale());
+            log.error(message, e);
+            Helper.setFehlerMeldung(message, e.getMessage());
         }
     }
 
@@ -455,6 +470,59 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                             model.createResource(gp.getPropertyValue()));
                 }
             }
+        }
+    }
+
+    public void updateVocabulary(DisplayProperty property) {
+        HierarchicalConfiguration hc = archeConfiguration.getConfig().configurationAt("/project/property[@name='" + property.getName() + "']");
+        String vocabularyName = hc.getString("/vocabulary/@name");
+        String labelField = hc.getString("/vocabulary/@label");
+        String valueField = hc.getString("/vocabulary/@value");
+
+        try {
+            long vocabularyId = VocabularyAPIManager.getInstance().vocabularies().findByName(vocabularyName).getId();
+
+            String skosURI = hc.getString("/vocabulary/@url");
+            String xsltPath = hc.getString("/vocabulary/@xslt");
+
+            // if uri and xslt are configured
+            if (StringUtils.isNotBlank(skosURI) && StringUtils.isNotBlank(xsltPath)) {
+
+                // get data from uri
+                String data = HttpUtils.getStringFromUrl(skosURI);
+
+                // if data is found
+                if (StringUtils.isNotBlank(data)) {
+                    try {
+                        StreamSource input = new StreamSource(new StringReader(data));
+                        StreamSource xslt = new StreamSource(xsltPath);
+
+                        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                        Transformer transformer = transformerFactory.newTransformer(xslt);
+
+                        ByteArrayOutputStream csvOutputStream = new ByteArrayOutputStream();
+                        transformer.transform(input, new StreamResult(csvOutputStream));
+                        ByteArrayInputStream csvInputStream = new ByteArrayInputStream(csvOutputStream.toByteArray());
+                        VocabularyAPIManager.getInstance().vocabularies().cleanImportCsv(vocabularyId, csvInputStream);
+
+                        initializeProperty(vocabularyName, labelField, valueField, property);
+                    } catch (TransformerException e) {
+                        String message = "Error while transforming vocabulary data from " + skosURI + " to CSV";
+                        log.error(message, e);
+                        Helper.setFehlerMeldung(message, e.getMessage());
+                    } catch (APIException e) {
+                        APIExceptionExtractor extractor = new APIExceptionExtractor(e);
+                        String message = "Failed to update vocabulary \"" + vocabularyName + "\", Reason: \n" + extractor.getLocalizedMessage(Helper.getSessionLocale());
+                        log.error(message, e);
+                        Helper.setFehlerMeldung(message, e.getMessage());
+                    }
+                }
+            }
+        }  catch (APIException e) {
+            APIExceptionExtractor extractor = new APIExceptionExtractor(e);
+            String message = "Failed to update vocabulary \"" + vocabularyName + "\", Reason: \n" + extractor.getLocalizedMessage(Helper.getSessionLocale());
+            log.error(message, e);
+            Helper.setFehlerMeldung(message, e.getMessage());
         }
     }
 }

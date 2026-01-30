@@ -11,7 +11,7 @@
     xmlns:jsf="http://xmlns.jcp.org/jsf"
     xmlns:section="http://goobi.io/section">
     <h:panelGroup>
-        
+
 
         <h:panelGroup
             styleClass="mt-3"
@@ -19,9 +19,9 @@
             layout="block">
             <h:outputText
                 styleClass="alert alert-danger"
-                value="#{msgs.plugin_administration_missingPermission} Plugin_administration_arche_project_export"/>
+                value="#{msgs.plugin_administration_missingPermission} Plugin_administration_arche_project_export" />
         </h:panelGroup>
-        
+
         <ui:fragment rendered="#{LoginForm.hasRole('Plugin_administration_arche_project_export')}">
             <!-- select project to export -->
             <intranda:box
@@ -31,7 +31,7 @@
                 icon="fa fa-plug"
                 id="selectionBox"
                 title="#{msgs[AdministrationForm.administrationPlugin.title]}">
-                
+
                 <h:form
                     id="actionForm"
                     enctype="multipart/form-data">
@@ -54,7 +54,7 @@
             </intranda:box>
 
             <br />
-            
+
             <!-- display selected project and edit configured properties -->
             <intranda:box
                 boxForm="true"
@@ -216,13 +216,22 @@
 
                         </ui:fragment>
 
-                        <ui:fragment rendered="#{property.type.name == 'list'}">
+                        <ui:fragment rendered="#{property.type.name == 'list' or property.type.name == 'vocabularyreference'}">
                             <div class="row">
                                 <div class="col-12 col-md-3">
                                     <intranda:formLabel
                                         label="#{property.name}"
                                         labelFor="select"
                                         labelRequired="#{property.showProcessGroupAccessCondition == 'WRITEREQUIRED'}" />
+
+                                    <button
+                                        jsf:rendered="#{property.type.name == 'vocabularyreference'}"
+                                        jsf:action="#{AdministrationForm.administrationPlugin.updateVocabulary(property)}"
+                                        aria-label="#{msgs.plugin_administration_arche_updateVocabulary}"
+                                        class="btn btn-blank float-end">
+                                        <i class="fa fa-refresh"></i>
+
+                                    </button>
                                 </div>
                                 <div class="col-12 col-md-9">
                                     <h:selectOneMenu
@@ -298,16 +307,16 @@
                         </ui:fragment>
                     </ui:repeat>
                     <div class="form-actions">
-                                        <button
+                        <button
                             jsf:action="#{AdministrationForm.administrationPlugin.exportProject(true)}"
                             aria-label="#{msgs.plugin_administration_arche_save_test}"
                             class="btn btn-primary">
                             <i class="fa fa-floppy-o"></i>
                             <span>
                                 <h:outputText value="#{msgs.plugin_administration_arche_save_test}" />
-                            </span>                            
+                            </span>
                         </button>
-                    
+
                         <button
                             jsf:action="#{AdministrationForm.administrationPlugin.exportProject(true)}"
                             aria-label="#{msgs.plugin_administration_arche_save_prod}"
@@ -315,7 +324,7 @@
                             <i class="fa fa-floppy-o"></i>
                             <span>
                                 <h:outputText value="#{msgs.plugin_administration_arche_save_prod}" />
-                            </span>                            
+                            </span>
                         </button>
                     </div>
                 </h:form>
