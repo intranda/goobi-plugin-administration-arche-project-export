@@ -1,334 +1,275 @@
 <ui:composition
     xmlns="http://www.w3.org/1999/xhtml"
     xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-    xmlns:composite="http://xmlns.jcp.org/jsf/composite"
     xmlns:h="http://xmlns.jcp.org/jsf/html"
     xmlns:f="http://xmlns.jcp.org/jsf/core"
-    xmlns:intranda="http://xmlns.jcp.org/jsf/composite/composites"
-    xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
     xmlns:p="http://primefaces.org/ui"
-    xmlns:button="http://goobi.io/button"
     xmlns:jsf="http://xmlns.jcp.org/jsf"
-    xmlns:section="http://goobi.io/section">
+    xmlns:section="http://goobi.io/section"
+    xmlns:form="http://goobi.io/form"
+    xmlns:util="http://goobi.io/util">
     <h:panelGroup>
-
-
         <h:panelGroup
-            styleClass="mt-3"
             rendered="#{!LoginForm.hasRole('Plugin_administration_arche_project_export')}"
+            styleClass="alert alert-danger"
             layout="block">
-            <h:outputText
-                styleClass="alert alert-danger"
-                value="#{msgs.plugin_administration_missingPermission} Plugin_administration_arche_project_export" />
+            #{msgs.plugin_administration_missingPermission} Plugin_administration_arche_project_export
         </h:panelGroup>
 
         <ui:fragment rendered="#{LoginForm.hasRole('Plugin_administration_arche_project_export')}">
             <!-- select project to export -->
-            <intranda:box
-                boxForm="true"
-                boxPadding="false"
-                boxType="primary"
-                icon="fa fa-plug"
-                id="selectionBox"
-                title="#{msgs[AdministrationForm.administrationPlugin.title]}">
-
-                <h:form
-                    id="actionForm"
-                    enctype="multipart/form-data">
-
-                    <intranda:formInputDropDownAjax
-                        id="project"
-                        label="#{msgs.projekt}"
-                        field="#{AdministrationForm.administrationPlugin.projectId}"
-                        help="#{msgs.helpProcessProject}"
-                        name="prozess"
-                        selectItems="#{AdministrationForm.administrationPlugin.possibleProjects}"
-                        required="false"
-                        var="var"
-                        hidePleaseSelectMessage="false"
-                        itemLabel="#{var.titel}"
-                        itemValue="#{var.id}"
-                        ajaxEvent="change"
-                        ajaxRender="@all" />
+            <section:section type="primary">
+                <section:header
+                    icon="plug"
+                    title="#{msgs[AdministrationForm.administrationPlugin.title]}" />
+                <h:form id="actionForm">
+                    <section:body>
+                        <form:field
+                            label="#{msgs.projekt}"
+                            help="#{msgs.helpProcessProject}">
+                            <h:selectOneMenu
+                                id="project"
+                                styleClass="form-select"
+                                value="#{AdministrationForm.administrationPlugin.projectId}">
+                                <f:selectItem itemLabel="#{msgs.bitteAuswaehlen}" itemValue="" />
+                                <f:selectItems
+                                    value="#{AdministrationForm.administrationPlugin.possibleProjects}"
+                                    var="var"
+                                    itemLabel="#{var.titel}"
+                                    itemValue="#{var.id}" />
+                                <f:ajax render="@all" />
+                            </h:selectOneMenu>
+                        </form:field>
+                    </section:body>
                 </h:form>
-            </intranda:box>
-
-            <br />
+            </section:section>
 
             <!-- display selected project and edit configured properties -->
-            <intranda:box
-                boxForm="true"
-                boxPadding="false"
-                boxType="action"
-                icon="fa fa-plug"
-                id="editBox"
-                class="mt-3"
+            <h:panelGroup
                 rendered="#{AdministrationForm.administrationPlugin.selectedProject != null}"
-                title="#{msgs.projektBearbeiten}">
+                layout="block"
+                styleClass="mt-3">
+                <section:section type="action">
+                    <section:header
+                        icon="plug"
+                        title="#{msgs.projektBearbeiten}" />
+                    <h:form id="editForm">
+                        <section:body>
+                            <!-- project title data -->
+                            <form:field
+                                label="#{msgs.projekt}"
+                                help="#{msgs.helpProcessTitle}">
+                                <h:inputText
+                                    id="title"
+                                    styleClass="form-control"
+                                    value="#{AdministrationForm.administrationPlugin.selectedProject.titel}"
+                                    readonly="true" />
+                            </form:field>
 
-                <h:form
-                    id="editForm"
-                    enctype="multipart/form-data">
+                            <form:field
+                                label="#{msgs.project_projectIdentifier}"
+                                help="#{msgs.help_project_projectIdentifier}">
+                                <h:inputText
+                                    id="projectIdentifier"
+                                    styleClass="form-control"
+                                    value="#{AdministrationForm.administrationPlugin.selectedProject.projectIdentifier}"
+                                    readonly="true" />
+                            </form:field>
 
-                    <!-- project title data -->
-                    <intranda:formInputText
-                        id="title"
-                        name="titel"
-                        label="#{msgs.projekt}"
-                        field="#{AdministrationForm.administrationPlugin.selectedProject.titel}"
-                        help="#{msgs.helpProcessTitle}"
-                        required="false"
-                        readonly="true" />
+                            <form:field
+                                label="#{msgs.institution}"
+                                help="#{msgs.helpProjectInstitution}">
+                                <h:inputText
+                                    id="institution"
+                                    styleClass="form-control"
+                                    value="#{AdministrationForm.administrationPlugin.selectedProject.institution.shortName}"
+                                    readonly="true" />
+                            </form:field>
 
+                            <!-- number of pages -->
+                            <form:field
+                                label="#{msgs.numberImages}"
+                                help="#{msgs.helpNumberImages}">
+                                <h:inputText
+                                    id="numberImages"
+                                    styleClass="form-control"
+                                    value="#{AdministrationForm.administrationPlugin.selectedProject.numberOfPages}"
+                                    readonly="true" />
+                            </form:field>
 
-                    <intranda:formInputText
-                        id="projectIdentifier"
-                        name="projectIdentifierName"
-                        label="#{msgs.project_projectIdentifier}"
-                        field="#{AdministrationForm.administrationPlugin.selectedProject.projectIdentifier}"
-                        help="#{msgs.help_project_projectIdentifier}"
-                        required="false"
-                        readonly="true" />
+                            <!-- number of volumes -->
+                            <form:field
+                                label="#{msgs.numberVolumes}"
+                                help="#{msgs.helpNumberVolumes}">
+                                <h:inputText
+                                    id="numberVolumes"
+                                    styleClass="form-control"
+                                    value="#{AdministrationForm.administrationPlugin.selectedProject.numberOfVolumes}"
+                                    readonly="true" />
+                            </form:field>
 
-                    <intranda:formInputText
-                        id="institution"
-                        label="#{msgs.institution}"
-                        field="#{AdministrationForm.administrationPlugin.selectedProject.institution.shortName}"
-                        help="#{msgs.helpProjectInstitution}"
-                        name="institutionName"
-                        required="false"
-                        readonly="true" />
+                            <form:field label="#{msgs.startdate}">
+                                <h:inputText
+                                    id="startDate"
+                                    styleClass="form-control"
+                                    value="#{AdministrationForm.administrationPlugin.selectedProject.startDate}"
+                                    readonly="true"
+                                    disabled="true">
+                                    <f:convertDateTime pattern="yyyy-MM-dd" />
+                                </h:inputText>
+                            </form:field>
 
-                    <!-- number of pages -->
-                    <intranda:formInputText
-                        id="numberImages"
-                        name="numberImagesName"
-                        label="#{msgs.numberImages}"
-                        field="#{AdministrationForm.administrationPlugin.selectedProject.numberOfPages}"
-                        help="#{msgs.helpNumberImages}"
-                        required="false"
-                        readonly="true" />
+                            <form:field label="#{msgs.enddate}">
+                                <h:inputText
+                                    id="endDate"
+                                    styleClass="form-control"
+                                    value="#{AdministrationForm.administrationPlugin.selectedProject.endDate}"
+                                    readonly="true"
+                                    disabled="true">
+                                    <f:convertDateTime pattern="yyyy-MM-dd" />
+                                </h:inputText>
+                            </form:field>
 
-                    <!-- number of volumes -->
-                    <intranda:formInputText
-                        id="numberVolumes"
-                        name="numberVolumesName"
-                        label="#{msgs.numberVolumes}"
-                        field="#{AdministrationForm.administrationPlugin.selectedProject.numberOfVolumes}"
-                        help="#{msgs.helpNumberVolumes}"
-                        required="false"
-                        readonly="true" />
+                            <!--  display configured properties -->
+                            <ui:repeat
+                                var="property"
+                                value="#{AdministrationForm.administrationPlugin.displayProperties}">
 
-                    <div class="row">
-                        <div
-                            class="col-12 col-md-3"
-                            tabindex="-1">
-                            <intranda:formLabel
-                                label="#{msgs.startdate}"
-                                labelFor="startDate" />
-                        </div>
-                        <div class="col-12 col-md-9">
-                            <h:inputText
-                                id="startDate"
-                                styleClass="form-control form__input"
-                                value="#{AdministrationForm.administrationPlugin.selectedProject.startDate}"
-                                required="false"
-                                readonly="true"
-                                disabled="true">
-                                <f:convertDateTime pattern="yyyy-MM-dd" />
-                            </h:inputText>
-                        </div>
-                    </div>
-
-
-                    <div class="row">
-                        <div
-                            class="col-12 col-md-3"
-                            tabindex="-1">
-                            <intranda:formLabel
-                                label="#{msgs.enddate}"
-                                labelFor="endDate" />
-                        </div>
-                        <div class="col-12 col-md-9">
-                            <h:inputText
-                                id="endDate"
-                                styleClass="form-control form__input"
-                                value="#{AdministrationForm.administrationPlugin.selectedProject.endDate}"
-                                required="false"
-                                readonly="true"
-                                disabled="true">
-                                <f:convertDateTime pattern="yyyy-MM-dd" />
-                            </h:inputText>
-                        </div>
-                    </div>
-
-
-                    <!--  display configured properties -->
-                    <ui:repeat
-                        var="property"
-                        value="#{AdministrationForm.administrationPlugin.displayProperties}">
-
-                        <ui:fragment rendered="#{property.type.name == 'text'}">
-                            <div class="row">
-                                <div class="col-12 col-md-3">
-                                    <intranda:formLabel
+                                <ui:fragment rendered="#{property.type.name == 'text'}">
+                                    <form:field
                                         label="#{msgs[property.name]}"
-                                        labelFor="value" />
-                                </div>
-                                <div class="col-12 col-md-9">
-                                    <h:inputText
-                                        id="value"
-                                        styleClass="form-control"
-                                        value="#{property.value}"
-                                        readonly="false"
-                                        binding="#{value}">
-                                    </h:inputText>
-                                    <intranda:formHelp
-                                        msgFor="#{value.clientId}"
-                                        content="#{msgs.helpPropertyValue}" />
-                                </div>
-                            </div>
+                                        help="#{msgs.helpPropertyValue}">
+                                        <h:inputText
+                                            id="value"
+                                            styleClass="form-control"
+                                            value="#{property.value}" />
+                                    </form:field>
+                                </ui:fragment>
 
-                        </ui:fragment>
-                        <ui:fragment rendered="#{property.type.name == 'textarea'}">
-                            <div class="row">
-                                <div class="col-12 col-md-3">
-                                    <intranda:formLabel
+                                <ui:fragment rendered="#{property.type.name == 'textarea'}">
+                                    <form:field
                                         label="#{property.name}"
-                                        labelFor="textareaValue"
-                                        labelRequired="#{property.showProcessGroupAccessCondition == 'WRITEREQUIRED'}" />
-                                </div>
-                                <div class="col-12 col-md-9">
-                                    <h:inputTextarea
-                                        id="textareaValue"
-                                        rows="7"
-                                        styleClass="form-control"
-                                        value="#{property.value}"
-                                        readonly="#{property.showProcessGroupAccessCondition == 'READ'}">
-                                    </h:inputTextarea>
-                                    <h:message
-                                        for="textareaValue"
-                                        showDetail="true"
-                                        styleClass="help-inline font-danger" />
-                                    <intranda:formHelp content="#{msgs.helpPropertyValue}" />
-                                </div>
-                            </div>
+                                        help="#{msgs.helpPropertyValue}"
+                                        required="#{property.showProcessGroupAccessCondition == 'WRITEREQUIRED'}">
+                                        <h:inputTextarea
+                                            id="textareaValue"
+                                            rows="7"
+                                            styleClass="form-control"
+                                            value="#{property.value}"
+                                            readonly="#{property.showProcessGroupAccessCondition == 'READ'}" />
+                                        <h:message
+                                            for="textareaValue"
+                                            showDetail="true"
+                                            styleClass="help-inline font-danger" />
+                                    </form:field>
+                                </ui:fragment>
 
-                        </ui:fragment>
-
-                        <ui:fragment rendered="#{property.type.name == 'list' or property.type.name == 'vocabularyreference'}">
-                            <div class="row">
-                                <div class="col-12 col-md-3">
-                                    <intranda:formLabel
+                                <ui:fragment rendered="#{property.type.name == 'list'}">
+                                    <form:field
                                         label="#{property.name}"
-                                        labelFor="select"
-                                        labelRequired="#{property.showProcessGroupAccessCondition == 'WRITEREQUIRED'}" />
+                                        required="#{property.showProcessGroupAccessCondition == 'WRITEREQUIRED'}">
+                                        <h:selectOneMenu
+                                            id="selectList"
+                                            styleClass="form-select"
+                                            disabled="#{property.showProcessGroupAccessCondition == 'READ'}"
+                                            value="#{property.value}">
+                                            <f:selectItems
+                                                value="#{property.possibleValues}"
+                                                var="val"
+                                                itemLabel="#{msgs[val.label]}"
+                                                itemValue="#{val.value}" />
+                                        </h:selectOneMenu>
+                                    </form:field>
+                                </ui:fragment>
 
-                                    <button
-                                        jsf:rendered="#{property.type.name == 'vocabularyreference'}"
-                                        jsf:action="#{AdministrationForm.administrationPlugin.updateVocabulary(property)}"
-                                        aria-label="#{msgs.plugin_administration_arche_updateVocabulary}"
-                                        class="btn btn-blank float-end">
-                                        <i class="fa fa-refresh"></i>
-
-                                    </button>
-                                </div>
-                                <div class="col-12 col-md-9">
-                                    <h:selectOneMenu
-                                        id="select"
-                                        styleClass="form-control form-select"
-                                        disabled="#{property.showProcessGroupAccessCondition == 'READ'}"
-                                        value="#{property.value}">
-                                        <f:selectItems
-                                            value="#{property.possibleValues}"
-                                            var="val"
-                                            itemLabel="#{msgs[val.label]}"
-                                            itemValue="#val.value}" />
-                                    </h:selectOneMenu>
-                                </div>
-                            </div>
-
-                        </ui:fragment>
-
-                        <ui:fragment rendered="#{property.type.name == 'boolean'}">
-                            <div class="row">
-                                <div class="col-12 col-md-3">
-                                    <intranda:formLabel
+                                <ui:fragment rendered="#{property.type.name == 'vocabularyreference'}">
+                                    <form:field
                                         label="#{property.name}"
-                                        labelFor="boolean"
-                                        labelRequired="#{property.showProcessGroupAccessCondition == 'WRITEREQUIRED'}" />
-                                </div>
-                                <div class="col-12 col-md-9">
-                                    <h:selectBooleanCheckbox
-                                        id="boolean"
-                                        value="#{property.booleanValue}"
-                                        disabled="#{property.showProcessGroupAccessCondition == 'READ'}">
-                                    </h:selectBooleanCheckbox>
-                                    <h:message
-                                        for="boolean"
-                                        showDetail="true"
-                                        styleClass="help-inline font-danger" />
-                                    <intranda:formHelp content="#{msgs.helpPropertyValue}" />
-                                </div>
-                            </div>
+                                        required="#{property.showProcessGroupAccessCondition == 'WRITEREQUIRED'}">
+                                        <div class="input-group">
+                                            <h:selectOneMenu
+                                                id="selectVocab"
+                                                styleClass="form-select"
+                                                disabled="#{property.showProcessGroupAccessCondition == 'READ'}"
+                                                value="#{property.value}">
+                                                <f:selectItems
+                                                    value="#{property.possibleValues}"
+                                                    var="val"
+                                                    itemLabel="#{msgs[val.label]}"
+                                                    itemValue="#{val.value}" />
+                                            </h:selectOneMenu>
+                                            <button
+                                                jsf:action="#{AdministrationForm.administrationPlugin.updateVocabulary(property)}"
+                                                title="#{msgs.plugin_administration_arche_updateVocabulary}"
+                                                class="btn btn-outline-secondary">
+                                                <util:icon icon="refresh" />
+                                            </button>
+                                        </div>
+                                    </form:field>
+                                </ui:fragment>
 
-                        </ui:fragment>
-
-                        <ui:fragment rendered="#{property.type.name == 'date'}">
-                            <div class="row">
-                                <div class="col-12 col-md-3">
-                                    <intranda:formLabel
+                                <ui:fragment rendered="#{property.type.name == 'boolean'}">
+                                    <form:field
                                         label="#{property.name}"
-                                        labelFor="date"
-                                        labelRequired="#{property.showProcessGroupAccessCondition == 'WRITEREQUIRED'}" />
-                                </div>
-                                <div class="col-12 col-md-9">
-                                    <p:calendar
-                                        id="date"
-                                        value="#{property.dateValue}"
-                                        locale="#{SpracheForm.locale}"
-                                        styleClass="ff-goobi"
-                                        mask="true"
-                                        navigator="true"
-                                        yearRange="-100:+100"
-                                        pattern="#{property.pattern}">
-                                        <f:passThroughAttribute
-                                            name="autocomplete"
-                                            value="off" />
-                                    </p:calendar>
-                                    <h:message
-                                        for="date"
-                                        showDetail="true"
-                                        styleClass="help-inline font-danger" />
-                                    <intranda:formHelp content="#{msgs.helpPropertyValue}" />
-                                </div>
-                            </div>
+                                        help="#{msgs.helpPropertyValue}"
+                                        required="#{property.showProcessGroupAccessCondition == 'WRITEREQUIRED'}">
+                                        <h:selectBooleanCheckbox
+                                            id="boolean"
+                                            value="#{property.booleanValue}"
+                                            disabled="#{property.showProcessGroupAccessCondition == 'READ'}" />
+                                        <h:message
+                                            for="boolean"
+                                            showDetail="true"
+                                            styleClass="help-inline font-danger" />
+                                    </form:field>
+                                </ui:fragment>
 
-                        </ui:fragment>
-                    </ui:repeat>
-                    <div class="form-actions">
-                        <button
-                            jsf:action="#{AdministrationForm.administrationPlugin.exportProject(true)}"
-                            aria-label="#{msgs.plugin_administration_arche_save_test}"
-                            class="btn btn-primary">
-                            <i class="fa fa-floppy-o"></i>
-                            <span>
-                                <h:outputText value="#{msgs.plugin_administration_arche_save_test}" />
-                            </span>
-                        </button>
+                                <ui:fragment rendered="#{property.type.name == 'date'}">
+                                    <form:field
+                                        label="#{property.name}"
+                                        help="#{msgs.helpPropertyValue}"
+                                        required="#{property.showProcessGroupAccessCondition == 'WRITEREQUIRED'}">
+                                        <p:calendar
+                                            id="date"
+                                            value="#{property.dateValue}"
+                                            locale="#{SpracheForm.locale}"
+                                            styleClass="ff-goobi"
+                                            mask="true"
+                                            navigator="true"
+                                            yearRange="-100:+100"
+                                            pattern="#{property.pattern}">
+                                            <f:passThroughAttribute
+                                                name="autocomplete"
+                                                value="off" />
+                                        </p:calendar>
+                                        <h:message
+                                            for="date"
+                                            showDetail="true"
+                                            styleClass="help-inline font-danger" />
+                                    </form:field>
+                                </ui:fragment>
+                            </ui:repeat>
+                        </section:body>
+                        <section:footer>
+                            <button
+                                jsf:action="#{AdministrationForm.administrationPlugin.exportProject(true)}"
+                                aria-label="#{msgs.plugin_administration_arche_save_test}"
+                                class="btn btn-blank">
+                                <span>
+                                    <h:outputText value="#{msgs.plugin_administration_arche_save_test}" />
+                                </span>
 
-                        <button
-                            jsf:action="#{AdministrationForm.administrationPlugin.exportProject(true)}"
-                            aria-label="#{msgs.plugin_administration_arche_save_prod}"
-                            class="btn btn-primary">
-                            <i class="fa fa-floppy-o"></i>
-                            <span>
-                                <h:outputText value="#{msgs.plugin_administration_arche_save_prod}" />
-                            </span>
-                        </button>
-                    </div>
-                </h:form>
-            </intranda:box>
+                            </button>
+                            <button
+                                jsf:action="#{AdministrationForm.administrationPlugin.exportProject(false)}"
+                                aria-label="#{msgs.plugin_administration_arche_save_prod}"
+                                class="btn btn-action">
+                                <util:icon-text icon="device-floppy" text="#{msgs.plugin_administration_arche_save_prod}" />
+                            </button>
+                        </section:footer>
+                    </h:form>
+                </section:section>
+            </h:panelGroup>
         </ui:fragment>
     </h:panelGroup>
 </ui:composition>
