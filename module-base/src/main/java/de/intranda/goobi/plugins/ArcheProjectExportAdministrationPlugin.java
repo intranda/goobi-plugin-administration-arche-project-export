@@ -1,14 +1,21 @@
 package de.intranda.goobi.plugins;
 
-import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.goobi.workflow.api.vocabulary.APIException;
-import io.goobi.workflow.api.vocabulary.helper.APIExceptionExtractor;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -31,9 +38,10 @@ import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.sub.goobi.persistence.managers.ProjectManager;
-import de.sub.goobi.persistence.managers.PropertyManager;
 import io.goobi.workflow.api.connection.HttpUtils;
+import io.goobi.workflow.api.vocabulary.APIException;
 import io.goobi.workflow.api.vocabulary.VocabularyAPIManager;
+import io.goobi.workflow.api.vocabulary.helper.APIExceptionExtractor;
 import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabulary;
 import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabularyRecord;
 import jakarta.faces.model.SelectItem;
@@ -43,10 +51,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
-
-import javax.xml.transform.*;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 
 @PluginImplementation
 @Log4j2
@@ -121,49 +125,51 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                 String displayType = hc.getString("@type", "text");
 
                 // check, if property exists
-                GoobiProperty property = null;
+                List<GoobiProperty> properties = new ArrayList<>();
                 for (GoobiProperty gp : selectedProject.getProperties()) {
                     if (gp.getPropertyName().equals(propertyName)) {
-                        property = gp;
-                        break;
+                        properties.add(gp);
                     }
                 }
                 // create, if needed
-                if (property == null) {
+                if (properties.isEmpty()) {
 
-                    property = new GoobiProperty(PropertyOwnerType.PROJECT);
+                    GoobiProperty property = new GoobiProperty(PropertyOwnerType.PROJECT);
                     property.setOwner(selectedProject);
                     property.setPropertyName(propertyName);
                     selectedProject.getProperties().add(property);
+                    properties.add(property);
                 }
+                for (GoobiProperty property : properties) {
 
-                // set default value
-                if (StringUtils.isBlank(property.getPropertyValue()) && StringUtils.isNotBlank(defaultValue)) {
-                    property.setPropertyValue(defaultValue);
-                }
+                    // set default value
+                    if (StringUtils.isBlank(property.getPropertyValue()) && StringUtils.isNotBlank(defaultValue)) {
+                        property.setPropertyValue(defaultValue);
+                    }
 
-                DisplayProperty pp = new DisplayProperty();
-                pp.setName(propertyName);
-                pp.setContainer("0");
-                pp.setType(org.goobi.production.properties.Type.getTypeByName(displayType));
-                pp.setValidation(hc.getString("@validation"));
+                    DisplayProperty pp = new DisplayProperty();
+                    pp.setName(propertyName);
+                    pp.setContainer("0");
+                    pp.setType(org.goobi.production.properties.Type.getTypeByName(displayType));
+                    pp.setValidation(hc.getString("@validation"));
 
-                pp.setPattern(hc.getString("@pattern", "dd.MM.yyyy"));
+                    pp.setPattern(hc.getString("@pattern", "dd.MM.yyyy"));
 
-                displayProperties.add(pp);
-                pp.setProzesseigenschaft(property);
-                pp.setValue(property.getPropertyValue());
-                pp.setContainer(property.getContainer());
+                    displayProperties.add(pp);
+                    pp.setProzesseigenschaft(property);
+                    pp.setValue(property.getPropertyValue());
+                    pp.setContainer(property.getContainer());
 
-                if ("vocabularyreference".equals(displayType)) {
-                    String vocabularyName = hc.getString("/vocabulary/@name");
-                    String labelField = hc.getString("/vocabulary/@label");
-                    String valueField = hc.getString("/vocabulary/@value");
-                    initializeProperty(vocabularyName, labelField, valueField, pp);
-                }
+                    if ("vocabularyreference".equals(displayType)) {
+                        String vocabularyName = hc.getString("/vocabulary/@name");
+                        String labelField = hc.getString("/vocabulary/@label");
+                        String valueField = hc.getString("/vocabulary/@value");
+                        initializeProperty(vocabularyName, labelField, valueField, pp);
+                    }
 
-                for (HierarchicalConfiguration selectItem : hc.configurationsAt("/select")) {
-                    pp.getPossibleValues().add(new SelectItem(selectItem.getString("@value"), selectItem.getString("@label")));
+                    for (HierarchicalConfiguration selectItem : hc.configurationsAt("/select")) {
+                        pp.getPossibleValues().add(new SelectItem(selectItem.getString("@value"), selectItem.getString("@label")));
+                    }
                 }
             }
         }
@@ -189,7 +195,8 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
         } catch (APIException e) {
             APIExceptionExtractor extractor = new APIExceptionExtractor(e);
-            String message = "Failed to load vocabulary \"" + vocabularyName + "\" records, Reason: \n" + extractor.getLocalizedMessage(Helper.getSessionLocale());
+            String message = "Failed to load vocabulary \"" + vocabularyName + "\" records, Reason: \n"
+                    + extractor.getLocalizedMessage(Helper.getSessionLocale());
             log.error(message, e);
             Helper.setFehlerMeldung(message, e.getMessage());
         }
@@ -203,7 +210,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         return possibleProjects;
     }
 
-    public void exportProject(boolean prodIngest) {
+    public void exportProject() {
 
         // save properties
         try {
@@ -221,83 +228,91 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         // if yes: use this as id and create PATCH request
         // if not: create new resource with api url and store location after request
 
-        String location = null;
+        //        String location = null;
         //  check if project has a property for the arche-id
         // if yes -> PATCH
         // if no: POST
-        if (archeConfiguration.isEnableArcheIngest(prodIngest)) {
-            for (GoobiProperty gp : selectedProject.getProperties()) {
-                if (gp.getPropertyName().equals(archeConfiguration.getArcheUrlPropertyName(prodIngest))) {
-                    location = gp.getPropertyValue();
-                    break;
-                }
-            }
-        }
-        if (location != null) {
+        //        if (archeConfiguration.isEnableArcheIngest(prodIngest)) {
+        //            for (GoobiProperty gp : selectedProject.getProperties()) {
+        //                if (gp.getPropertyName().equals(archeConfiguration.getArcheUrlPropertyName(prodIngest))) {
+        //                    location = gp.getPropertyValue();
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //        if (location != null) {
+        //
+        //            Resource resource = createTopCollectionDocument(location);
+        //            saveTurtleOnDisc(resource);
+        //            if (archeConfiguration.isEnableArcheIngest(prodIngest)) {
+        //                try {
+        //                    updateExistingResource(resource, location, prodIngest);
+        //                } catch (ProcessingException e) {
+        //                    Helper.setFehlerMeldung("Cannot reach arche API");
+        //                }
+        //            }
+        //        } else {
 
-            Resource resource = createTopCollectionDocument(location);
-            saveTurtleOnDisc(resource);
-            if (archeConfiguration.isEnableArcheIngest(prodIngest)) {
-                try {
-                    updateExistingResource(resource, location, prodIngest);
-                } catch (ProcessingException e) {
-                    Helper.setFehlerMeldung("Cannot reach arche API");
-                }
-            }
-        } else {
-            Resource resource = createTopCollectionDocument(archeConfiguration.getArcheApiUrl(prodIngest));
+        String topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getTitel();
 
-            // option to store ttl in local folder
-            saveTurtleOnDisc(resource);
+        Resource resource = createTopCollectionDocument(topCollectionIdentifier, topCollectionIdentifier);
+        Resource validationResource = createTopCollectionDocument(topCollectionIdentifier, archeConfiguration.getArcheApiUrl());
 
-            // option to upload ttl into arche
-            if (archeConfiguration.isEnableArcheIngest(prodIngest)) {
-                try {
-                    ingestNewResource(resource, prodIngest);
-                } catch (ProcessingException e) {
-                    Helper.setFehlerMeldung("Cannot reach arche API");
-                }
+        // option to store ttl in local folder
+        saveTurtleOnDisc(resource);
+
+        // option to upload ttl into arche
+        if (archeConfiguration.isEnableArcheIngest()) {
+            try {
+                ingestNewResource(validationResource);
+            } catch (ProcessingException e) {
+                Helper.setFehlerMeldung("Cannot reach arche API");
             }
         }
     }
+    //    }
+    //
+    //    private boolean updateExistingResource(Resource resource, String location, boolean prodIngest) {
+    //        try (Client client = ArcheAPI.getClient(archeConfiguration.getArcheUserName(prodIngest), archeConfiguration.getArchePassword(prodIngest))) {
+    //            TransactionInfo ti = ArcheAPI.startTransaction(client, archeConfiguration.getArcheApiUrl(prodIngest));
+    //            if (ArcheAPI.updateMetadata(client, location, archeConfiguration.getArcheApiUrl(prodIngest), resource, ti) == null) {
+    //                ArcheAPI.cancelTransaction(client, archeConfiguration.getArcheApiUrl(prodIngest), ti);
+    //                return false;
+    //            }
+    //            ArcheAPI.finishTransaction(client, archeConfiguration.getArcheApiUrl(prodIngest), ti);
+    //            return true;
+    //        }
+    //    }
 
-    private boolean updateExistingResource(Resource resource, String location, boolean prodIngest) {
-        try (Client client = ArcheAPI.getClient(archeConfiguration.getArcheUserName(prodIngest), archeConfiguration.getArchePassword(prodIngest))) {
-            TransactionInfo ti = ArcheAPI.startTransaction(client, archeConfiguration.getArcheApiUrl(prodIngest));
-            if (ArcheAPI.updateMetadata(client, location, archeConfiguration.getArcheApiUrl(prodIngest), resource, ti) == null) {
-                ArcheAPI.cancelTransaction(client, archeConfiguration.getArcheApiUrl(prodIngest), ti);
-                return false;
-            }
-            ArcheAPI.finishTransaction(client, archeConfiguration.getArcheApiUrl(prodIngest), ti);
-            return true;
-        }
-    }
-
-    private void ingestNewResource(Resource resource, boolean prodIngest) {
-        try (Client client = ArcheAPI.getClient(archeConfiguration.getArcheUserName(prodIngest), archeConfiguration.getArchePassword(prodIngest))) {
-            TransactionInfo ti = ArcheAPI.startTransaction(client, archeConfiguration.getArcheApiUrl(prodIngest));
-            String collectionUri = ArcheAPI.uploadMetadata(client, archeConfiguration.getArcheApiUrl(prodIngest), ti, resource);
-            if (collectionUri == null) {
+    private void ingestNewResource(Resource resource) {
+        try (Client client = ArcheAPI.getClient(archeConfiguration.getArcheUserName(), archeConfiguration.getArchePassword())) {
+            TransactionInfo ti = ArcheAPI.startTransaction(client, archeConfiguration.getArcheApiUrl());
+            String collectionUri = ArcheAPI.uploadMetadata(client, archeConfiguration.getArcheApiUrl(), ti, resource);
+            if (collectionUri != null) {
                 ArcheAPI.cancelTransaction(client, collectionUri, ti);
-                return;
-            }
-
-            // store collectionUri in archeUrlPropertyName
-            GoobiProperty archeUrl = new GoobiProperty(PropertyOwnerType.PROJECT);
-            archeUrl.setPropertyName(archeConfiguration.getArcheUrlPropertyName(prodIngest));
-            archeUrl.setPropertyValue(collectionUri);
-            archeUrl.setOwner(selectedProject);
-            PropertyManager.saveProperty(archeUrl);
-            selectedProject.getProperties().add(archeUrl);
-
-            // add image resource
-            Path imagePath = Paths.get(archeConfiguration.getPlaceholderImage());
-            Resource image = createPlaceholderImageResource(collectionUri, imagePath.getFileName().toString(), prodIngest);
-            String imageUrl = ArcheAPI.uploadMetadata(client, archeConfiguration.getArcheApiUrl(prodIngest), ti, image);
-            // upload image
-            if (imageUrl != null) {
-                ArcheAPI.uploadBinary(client, imageUrl, ti, imagePath);
-                ArcheAPI.finishTransaction(client, archeConfiguration.getArcheApiUrl(prodIngest), ti);
+                Helper.setMeldung("Arche validation successful");
+                //            if (collectionUri == null) {
+                //                ArcheAPI.cancelTransaction(client, collectionUri, ti);
+                //                return;
+                //            }
+                //
+                //            // store collectionUri in archeUrlPropertyName
+                //            GoobiProperty archeUrl = new GoobiProperty(PropertyOwnerType.PROJECT);
+                //            archeUrl.setPropertyName(archeConfiguration.getArcheUrlPropertyName(prodIngest));
+                //            archeUrl.setPropertyValue(collectionUri);
+                //            archeUrl.setOwner(selectedProject);
+                //            PropertyManager.saveProperty(archeUrl);
+                //            selectedProject.getProperties().add(archeUrl);
+                //
+                //            // add image resource
+                //            Path imagePath = Paths.get(archeConfiguration.getPlaceholderImage());
+                //            Resource image = createPlaceholderImageResource(collectionUri, imagePath.getFileName().toString(), prodIngest);
+                //            String imageUrl = ArcheAPI.uploadMetadata(client, archeConfiguration.getArcheApiUrl(prodIngest), ti, image);
+                //            // upload image
+                //            if (imageUrl != null) {
+                //                ArcheAPI.uploadBinary(client, imageUrl, ti, imagePath);
+                //                ArcheAPI.finishTransaction(client, archeConfiguration.getArcheApiUrl(prodIngest), ti);
+                //            }
             }
         }
     }
@@ -316,46 +331,46 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         }
     }
 
-    private Resource createPlaceholderImageResource(String collectionUri, String filename, boolean prodIngest) {
+    //    private Resource createPlaceholderImageResource(String collectionUri, String filename, boolean prodIngest) {
+    //
+    //        String languageCode = "en";
+    //        Model model = ModelFactory.createDefaultModel();
+    //        model.setNsPrefix("acdh", archeConfiguration.getArcheNamespace());
+    //
+    //        String topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getTitel();
+    //
+    //        String resourceIdentifier = topCollectionIdentifier + "/" + filename;
+    //
+    //        Resource resource =
+    //                model.createResource(archeConfiguration.getArcheApiUrl(prodIngest), model.createResource(model.getNsPrefixURI("acdh") + "Resources"));
+    //
+    //        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasTitle"), filename, languageCode);
+    //        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasIdentifier"),
+    //                model.createResource(resourceIdentifier));
+    //        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "isPartOf"),
+    //                model.createResource(topCollectionIdentifier));
+    //
+    //        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCategory"),
+    //                model.createResource("https://vocabs.acdh.oeaw.ac.at/archecategory/image"));
+    //
+    //        writePropertyValue(languageCode, model, resource, "hasOwner");
+    //        writePropertyValue(languageCode, model, resource, "hasMetadataCreator");
+    //        writePropertyValue(languageCode, model, resource, "hasCurator");
+    //        writePropertyValue(languageCode, model, resource, "hasLicensor");
+    //        writePropertyValue(languageCode, model, resource, "hasRightsHolder");
+    //        writePropertyValue(languageCode, model, resource, "hasDepositor");
+    //
+    //        return resource;
+    //    }
 
-        String languageCode = "en";
-        Model model = ModelFactory.createDefaultModel();
-        model.setNsPrefix("acdh", archeConfiguration.getArcheNamespace());
-
-        String topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getTitel();
-
-        String resourceIdentifier = topCollectionIdentifier + "/" + filename;
-
-        Resource resource =
-                model.createResource(archeConfiguration.getArcheApiUrl(prodIngest), model.createResource(model.getNsPrefixURI("acdh") + "Resources"));
-
-        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasTitle"), filename, languageCode);
-        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasIdentifier"),
-                model.createResource(resourceIdentifier));
-        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "isPartOf"),
-                model.createResource(topCollectionIdentifier));
-
-        resource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCategory"),
-                model.createResource("https://vocabs.acdh.oeaw.ac.at/archecategory/image"));
-
-        writePropertyValue(languageCode, model, resource, "hasOwner");
-        writePropertyValue(languageCode, model, resource, "hasMetadataCreator");
-        writePropertyValue(languageCode, model, resource, "hasCurator");
-        writePropertyValue(languageCode, model, resource, "hasLicensor");
-        writePropertyValue(languageCode, model, resource, "hasRightsHolder");
-        writePropertyValue(languageCode, model, resource, "hasDepositor");
-
-        return resource;
-    }
-
-    private Resource createTopCollectionDocument(String resourceIdentifier) {
+    private Resource createTopCollectionDocument(String topCollectionIdentifier, String resourceIdentifier) {
         String languageCode = "en";
         Model model = ModelFactory.createDefaultModel();
 
         model.setNsPrefix("acdh", archeConfiguration.getArcheNamespace());
 
         // collection name
-        String topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getTitel();
+
         Resource projectResource =
                 model.createResource(resourceIdentifier, model.createResource(model.getNsPrefixURI("acdh") + "TopCollection"));
         //        hasTitle -> project name
@@ -377,9 +392,6 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasUrl"), archeConfiguration.getViewerUrl(),
                 XSDDatatype.XSDanyURI);
 
-        //        hasDescription
-        writePropertyValue(languageCode, model, projectResource, "hasDescription");
-
         //        hasLifeCycleStatus ->
         // project active: set to https://vocabs.acdh.oeaw.ac.at/archelifecyclestatus/active
         // Otherwise, https://vocabs.acdh.oeaw.ac.at/archelifecyclestatus/completed
@@ -393,6 +405,8 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         //        hasUsedSoftware -> Goobi
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasUsedSoftware"), "Goobi");
 
+        //        hasDescription
+        writePropertyValue(languageCode, model, projectResource, "hasDescription");
         //        hasContact
         writePropertyValue(languageCode, model, projectResource, "hasContact");
 
@@ -423,19 +437,6 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCoverageEndDate"), String.valueOf(row[1]),
                     XSDDatatype.XSDdate);
         }
-
-        //        hasOwner
-        writePropertyValue(languageCode, model, projectResource, "hasOwner");
-
-        //        hasRightsHolder
-        writePropertyValue(languageCode, model, projectResource, "hasRightsHolder");
-
-        //        hasLicensor
-        writePropertyValue(languageCode, model, projectResource, "hasLicensor");
-
-        //        hasLicense
-        writePropertyValue(languageCode, model, projectResource, "hasLicense");
-
         //        hasCreatedStartDate
         if (selectedProject.getStartDate() != null) {
             projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCreatedStartDate"),
@@ -448,11 +449,45 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                     sdf.format(selectedProject.getEndDate()), XSDDatatype.XSDdate);
         }
 
-        //        hasDepositor
-        writePropertyValue(languageCode, model, projectResource, "hasDepositor");
+        for (GoobiProperty gp : selectedProject.getProperties()) {
+            String propertyName = gp.getPropertyName();
 
-        //        hasCurator
-        writePropertyValue(languageCode, model, projectResource, "hasCurator");
+            try {
+                HierarchicalConfiguration conf = archeConfiguration.getConfig().configurationAt("/project/property[@name='" + propertyName + "']");
+                if (conf != null) {
+                    String ttlFieldName = conf.getString("@ttlField");
+                    String language = conf.getString("@language", "en");
+                    String ttlType = conf.getString("@ttlType", "literal");
+                    if ("literal".equalsIgnoreCase(ttlType)) {
+                        projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), ttlFieldName),
+                                gp.getPropertyValue(), language);
+                    } else {
+                        projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), ttlFieldName),
+                                model.createResource(gp.getPropertyValue()));
+                    }
+                }
+            } catch (IllegalArgumentException e) {
+                // property is not configured, skip it
+            }
+        }
+
+        //        //        hasOwner
+        //        writePropertyValue(languageCode, model, projectResource, "hasOwner");
+        //
+        //        //        hasRightsHolder
+        //        writePropertyValue(languageCode, model, projectResource, "hasRightsHolder");
+        //
+        //        //        hasLicensor
+        //        writePropertyValue(languageCode, model, projectResource, "hasLicensor");
+        //
+        //        //        hasLicense
+        //        writePropertyValue(languageCode, model, projectResource, "hasLicense");
+        //
+        //        //        hasDepositor
+        //        writePropertyValue(languageCode, model, projectResource, "hasDepositor");
+        //
+        //        //        hasCurator
+        //        writePropertyValue(languageCode, model, projectResource, "hasCurator");
 
         return projectResource;
     }
@@ -512,17 +547,47 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                         Helper.setFehlerMeldung(message, e.getMessage());
                     } catch (APIException e) {
                         APIExceptionExtractor extractor = new APIExceptionExtractor(e);
-                        String message = "Failed to update vocabulary \"" + vocabularyName + "\", Reason: \n" + extractor.getLocalizedMessage(Helper.getSessionLocale());
+                        String message = "Failed to update vocabulary \"" + vocabularyName + "\", Reason: \n"
+                                + extractor.getLocalizedMessage(Helper.getSessionLocale());
                         log.error(message, e);
                         Helper.setFehlerMeldung(message, e.getMessage());
                     }
                 }
             }
-        }  catch (APIException e) {
+        } catch (APIException e) {
             APIExceptionExtractor extractor = new APIExceptionExtractor(e);
-            String message = "Failed to update vocabulary \"" + vocabularyName + "\", Reason: \n" + extractor.getLocalizedMessage(Helper.getSessionLocale());
+            String message =
+                    "Failed to update vocabulary \"" + vocabularyName + "\", Reason: \n" + extractor.getLocalizedMessage(Helper.getSessionLocale());
             log.error(message, e);
             Helper.setFehlerMeldung(message, e.getMessage());
         }
     }
+
+    public void duplicateField(DisplayProperty dp) {
+
+        if (dp != null) {
+
+            GoobiProperty property = new GoobiProperty(PropertyOwnerType.PROJECT);
+            property.setOwner(selectedProject);
+            property.setPropertyName(dp.getName());
+            selectedProject.getProperties().add(property);
+
+            DisplayProperty pp = new DisplayProperty();
+            pp.setName(dp.getName());
+            pp.setContainer("0");
+            pp.setType(dp.getType());
+            pp.setValidation(dp.getValidation());
+
+            pp.setPattern(dp.getPattern());
+
+            displayProperties.add(pp);
+            pp.setProzesseigenschaft(property);
+            pp.setValue(property.getPropertyValue());
+            pp.setContainer(property.getContainer());
+
+            pp.setPossibleValues(dp.getPossibleValues());
+
+        }
+    }
+
 }
