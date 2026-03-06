@@ -282,9 +282,9 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         //        } else {
         String topCollectionIdentifier = null;
         if (StringUtils.isNotBlank(selectedProject.getProjectIdentifier())) {
-            topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getProjectIdentifier();
+            topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getProjectIdentifier().replace(" ", "_");
         } else {
-            topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getTitel();
+            topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getTitel().replace(" ", "_");
         }
 
         Resource resource = createTopCollectionDocument(topCollectionIdentifier, topCollectionIdentifier);
@@ -355,9 +355,9 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                 exportFolder = exportFolder + "/";
             }
             if (selectedProject.getProjectIdentifier() != null) {
-                exportFolder = exportFolder + selectedProject.getProjectIdentifier() + ".ttl";
+                exportFolder = exportFolder + selectedProject.getProjectIdentifier().replace(" ", "_") + ".ttl";
             } else {
-                exportFolder = exportFolder + selectedProject.getTitel() + ".ttl";
+                exportFolder = exportFolder + selectedProject.getTitel().replace(" ", "_") + ".ttl";
             }
 
             try (OutputStream out = new FileOutputStream(exportFolder)) {
