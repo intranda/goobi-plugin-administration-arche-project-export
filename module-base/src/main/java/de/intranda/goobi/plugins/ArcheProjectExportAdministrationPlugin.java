@@ -63,9 +63,6 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     private String title = "intranda_administration_arche_project_export";
 
     @Getter
-    private String value;
-
-    @Getter
     private PluginType type = PluginType.Administration;
 
     @Getter
@@ -78,9 +75,12 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     private Project selectedProject;
 
     @Getter
-    private List<DisplayProperty> displayProperties;
+    private List<ArcheProperty> displayProperties;
 
     private ArcheConfiguration archeConfiguration;
+
+    @Getter
+    private List<SelectItem> possibleLanguages;
 
     /*
     
@@ -118,6 +118,14 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             }
             displayProperties = new ArrayList<>();
 
+            possibleLanguages = new ArrayList<>();
+            possibleLanguages.add(new SelectItem(null, ""));
+            for (HierarchicalConfiguration hc : archeConfiguration.getConfig().configurationsAt("/languages/language")) {
+                String label = hc.getString("@label");
+                String value = hc.getString("@value");
+                possibleLanguages.add(new SelectItem(value, label));
+            }
+
             // get configured property names
             for (HierarchicalConfiguration hc : archeConfiguration.getConfig().configurationsAt("/project/property")) {
                 String propertyName = hc.getString("@name");
@@ -147,13 +155,15 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                         property.setPropertyValue(defaultValue);
                     }
 
-                    DisplayProperty pp = new DisplayProperty();
+                    ArcheProperty pp = new ArcheProperty();
                     pp.setName(propertyName);
                     pp.setContainer("0");
                     pp.setType(org.goobi.production.properties.Type.getTypeByName(displayType));
                     pp.setValidation(hc.getString("@validation"));
 
                     pp.setPattern(hc.getString("@pattern", "dd.MM.yyyy"));
+                    pp.setRepeatable(hc.getBoolean("@repeatable", false));
+                    pp.setLanguageField(hc.getBoolean("@languageField", false));
 
                     displayProperties.add(pp);
                     pp.setProzesseigenschaft(property);
@@ -214,7 +224,8 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
         // save properties
         try {
-            for (DisplayProperty dp : displayProperties) {
+            // TODO check, if lang is selected
+            for (ArcheProperty dp : displayProperties) {
                 dp.transfer();
             }
 
@@ -500,7 +511,12 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                 if ("literal".equalsIgnoreCase(propertyType)) {
                     projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), fieldName),
                             gp.getPropertyValue(), languageCode);
-                } else {
+                } else if ("uri".equals(propertyType)) {
+                    projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), fieldName), gp.getPropertyValue(),
+                            XSDDatatype.XSDanyURI);
+                }
+
+                else {
                     projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), fieldName),
                             model.createResource(gp.getPropertyValue()));
                 }
@@ -563,7 +579,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         }
     }
 
-    public void duplicateField(DisplayProperty dp) {
+    public void duplicateField(ArcheProperty dp) {
 
         if (dp != null) {
 
@@ -572,7 +588,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             property.setPropertyName(dp.getName());
             selectedProject.getProperties().add(property);
 
-            DisplayProperty pp = new DisplayProperty();
+            ArcheProperty pp = new ArcheProperty();
             pp.setName(dp.getName());
             pp.setContainer("0");
             pp.setType(dp.getType());

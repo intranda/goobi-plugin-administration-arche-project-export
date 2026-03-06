@@ -150,9 +150,6 @@
                                                 id="value"
                                                 styleClass="form-control"
                                                 value="#{property.value}" />
-                                                
-                                                     <!-- language dropdown -->
-                                                     
                                         </ui:fragment>
                                         <ui:fragment rendered="#{property.type.name == 'textarea'}">
                                             <h:inputTextarea
@@ -165,9 +162,7 @@
                                                 for="textareaValue"
                                                 showDetail="true"
                                                 styleClass="help-inline font-danger" />
-                                                
-                                                <!-- language dropdown -->
-                                                
+
                                         </ui:fragment>
                                         <ui:fragment rendered="#{property.type.name == 'list'}">
                                             <h:selectOneMenu
@@ -230,7 +225,23 @@
                                                 styleClass="help-inline font-danger" />
                                         </ui:fragment>
 
+                                        <!-- language dropdown -->
+                                        <h:selectOneMenu
+                                            required="true"
+                                            id="selectLang"
+                                            styleClass="form-select"
+                                            rendered="#{property.languageField}"
+                                            value="#{property.selectedLanguage}">
+                                            <f:selectItems
+                                                value="#{AdministrationForm.administrationPlugin.possibleLanguages}"
+                                                var="val"
+                                                itemLabel="#{msgs[val.label]}"
+                                                itemValue="#{val.value}" />
+                                        </h:selectOneMenu>
+
+                                        <!-- duplicate row -->
                                         <button
+                                            jsf:rendered="#{property.repeatable}"
                                             jsf:action="#{AdministrationForm.administrationPlugin.duplicateField(property)}"
                                             class="btn btn-outline-secondary"
                                             title="#{msgs.duplicate}">
