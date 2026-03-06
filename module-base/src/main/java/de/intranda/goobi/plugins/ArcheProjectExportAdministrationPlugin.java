@@ -280,15 +280,18 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         //                }
         //            }
         //        } else {
-
-        String topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getTitel();
+        String topCollectionIdentifier = null;
+        if (StringUtils.isNotBlank(selectedProject.getProjectIdentifier())) {
+            topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getProjectIdentifier();
+        } else {
+            topCollectionIdentifier = archeConfiguration.getIdentifierPrefix() + selectedProject.getTitel();
+        }
 
         Resource resource = createTopCollectionDocument(topCollectionIdentifier, topCollectionIdentifier);
-        Resource validationResource = createTopCollectionDocument(topCollectionIdentifier, archeConfiguration.getArcheApiUrl());
-
         // option to store ttl in local folder
         saveTurtleOnDisc(resource);
 
+        Resource validationResource = createTopCollectionDocument(topCollectionIdentifier, archeConfiguration.getArcheApiUrl());
         // option to upload ttl into arche
         if (archeConfiguration.isEnableArcheIngest()) {
             try {
@@ -351,7 +354,13 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             if (!exportFolder.endsWith("/")) {
                 exportFolder = exportFolder + "/";
             }
-            try (OutputStream out = new FileOutputStream(exportFolder + selectedProject.getTitel() + ".ttl")) {
+            if (selectedProject.getProjectIdentifier() != null) {
+                exportFolder = exportFolder + selectedProject.getProjectIdentifier() + ".ttl";
+            } else {
+                exportFolder = exportFolder + selectedProject.getTitel() + ".ttl";
+            }
+
+            try (OutputStream out = new FileOutputStream(exportFolder)) {
                 RDFDataMgr.write(out, resource.getModel(), RDFFormat.TURTLE_PRETTY);
             } catch (IOException e) {
                 log.error(e);
@@ -429,8 +438,8 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasUsedSoftware"), "Goobi");
 
         String query =
-                "select min(value), max(value) from metadata where name = 'PublicationYear' and processid in (select ProzesseId from prozesse where ProjekteID = (Select projekteid from projekte where titel='"
-                        + selectedProject.getTitel() + "')) and value REGEXP '^[0-9]+$' group by name;";
+                "select min(value), max(value) from metadata where name = 'PublicationYear' and processid in (select ProzesseId from prozesse where ProjekteID ="
+                        + selectedProject.getId() + ") and value REGEXP '^[0-9]+$' group by name;";
         @SuppressWarnings("unchecked")
         List<Object> results = ProcessManager.runSQL(query);
         if (!results.isEmpty()) {
@@ -448,7 +457,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
         //        hasCreatedEndDate
         if (selectedProject.getEndDate() != null) {
-            projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCreatedStartDate"),
+            projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasCreatedEndDate"),
                     sdf.format(selectedProject.getEndDate()), XSDDatatype.XSDdate);
         }
 
@@ -551,6 +560,9 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             pp.setContainer("0");
             pp.setType(dp.getType());
             pp.setValidation(dp.getValidation());
+
+            pp.setRepeatable(dp.isRepeatable());
+            pp.setLanguageField(dp.isLanguageField());
 
             pp.setPattern(dp.getPattern());
 
