@@ -1,5 +1,6 @@
 package de.intranda.goobi.plugins;
 
+import org.apache.commons.lang3.StringUtils;
 import org.goobi.production.properties.DisplayProperty;
 
 import lombok.Getter;
@@ -17,4 +18,11 @@ public class ArcheProperty extends DisplayProperty {
 
     private String selectedLanguage;
 
+    @Override
+    public void transfer() {
+        super.transfer();
+        if (StringUtils.isNotBlank(selectedLanguage)) {
+            getProzesseigenschaft().setPropertyValue(getValue() + "@@@" + selectedLanguage);
+        }
+    }
 }
