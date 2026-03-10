@@ -8,6 +8,15 @@
     xmlns:section="http://goobi.io/section"
     xmlns:form="http://goobi.io/form"
     xmlns:util="http://goobi.io/util">
+    <style>
+        .input-group > .form-select.is-invalid,
+        .input-group > .form-select.is-invalid:hover,
+        .input-group > .form-select.is-invalid:focus {
+            border-color: #dc3545 !important;
+            box-shadow: none !important;
+            z-index: 2;
+        }
+    </style>
     <h:panelGroup>
         <h:panelGroup
             rendered="#{!LoginForm.hasRole('Plugin_administration_arche_project_export')}"
@@ -154,7 +163,7 @@
                                         <ui:fragment rendered="#{property.type.name == 'textarea'}">
                                             <h:inputTextarea
                                                 id="textareaValue"
-                                                rows="7"
+                                                rows="1"
                                                 styleClass="form-control"
                                                 value="#{property.value}"
                                                 readonly="#{property.showProcessGroupAccessCondition == 'READ'}" />
@@ -162,7 +171,6 @@
                                                 for="textareaValue"
                                                 showDetail="true"
                                                 styleClass="help-inline font-danger" />
-
                                         </ui:fragment>
                                         <ui:fragment rendered="#{property.type.name == 'list'}">
                                             <h:selectOneMenu
@@ -177,9 +185,7 @@
                                                     itemValue="#{val.value}" />
                                             </h:selectOneMenu>
                                         </ui:fragment>
-
                                         <ui:fragment rendered="#{property.type.name == 'vocabularyreference'}">
-
                                             <h:selectOneMenu
                                                 id="selectVocab"
                                                 styleClass="form-select"
@@ -197,13 +203,14 @@
                                                 class="btn btn-outline-secondary">
                                                 <util:icon icon="refresh" />
                                             </button>
-
                                         </ui:fragment>
                                         <ui:fragment rendered="#{property.type.name == 'boolean'}">
-                                            <h:selectBooleanCheckbox
-                                                id="boolean"
-                                                value="#{property.booleanValue}"
-                                                disabled="#{property.showProcessGroupAccessCondition == 'READ'}" />
+                                            <div class="form-control border-0">
+                                                <h:selectBooleanCheckbox
+                                                    id="boolean"
+                                                    value="#{property.booleanValue}"
+                                                    disabled="#{property.showProcessGroupAccessCondition == 'READ'}" />
+                                            </div>
                                         </ui:fragment>
                                         <ui:fragment rendered="#{property.type.name == 'date'}">
                                             <p:calendar
@@ -229,14 +236,17 @@
                                         <h:selectOneMenu
                                             required="false"
                                             id="selectLang"
-                                            styleClass="form-select"
+                                            styleClass="form-select #{property.invalid ? 'is-invalid' : ''}"
+                                            style="flex: 0 0 12.5%;"
                                             rendered="#{property.languageField}"
+                                            onchange="this.classList.remove('is-invalid')"
                                             value="#{property.selectedLanguage}">
                                             <f:selectItems
                                                 value="#{AdministrationForm.administrationPlugin.possibleLanguages}"
                                                 var="val"
-                                                itemLabel="#{msgs[val.label]}"
+                                                itemLabel="#{val.label}"
                                                 itemValue="#{val.value}" />
+                                            <f:ajax execute="@this" render="@this" />
                                         </h:selectOneMenu>
 
                                         <!-- duplicate row -->

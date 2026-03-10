@@ -121,7 +121,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
             displayProperties = new ArrayList<>();
 
             possibleLanguages = new ArrayList<>();
-            possibleLanguages.add(new SelectItem(null, ""));
+            possibleLanguages.add(new SelectItem(null, Helper.getTranslation("bitteAuswaehlen")));
             for (HierarchicalConfiguration hc : archeConfiguration.getConfig().configurationsAt("/languages/language")) {
                 String label = hc.getString("@label");
                 String value = hc.getString("@value");
@@ -234,11 +234,17 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     public void exportProject() {
 
         // abort, if language field is not selected
+        boolean hasError = false;
         for (ArcheProperty dp : displayProperties) {
+            dp.setInvalid(false);
             if (dp.isLanguageField() && StringUtils.isBlank(dp.getSelectedLanguage())) {
-                Helper.setFehlerMeldung("No language selected.");
-                return;
+                dp.setInvalid(true);
+                hasError = true;
             }
+        }
+        if (hasError) {
+            Helper.setFehlerMeldung("No language selected.");
+            return;
         }
 
         // save properties

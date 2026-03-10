@@ -18,6 +18,13 @@ public class ArcheProperty extends DisplayProperty {
 
     private String selectedLanguage;
 
+    private boolean invalid;
+
+    public void setSelectedLanguage(String selectedLanguage) {
+        this.selectedLanguage = selectedLanguage;
+        this.invalid = false;
+    }
+
     @Override
     public void transfer() {
         super.transfer();
