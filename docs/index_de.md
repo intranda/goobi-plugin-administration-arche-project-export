@@ -39,11 +39,11 @@ Hier kann als erstes das zu nutzende Projekt ausgewählt werden. Anschließend w
 
 ![Nutzeroberfläche des Plugins nach der Auswahl eines Projektes](screen4_de.png)
 
-Wurden alle Pflichtfelder ausgefüllt, kann das Projekt exportiert werden. Alle konfigurierten Felder werden dabei als Projekteigenschaften gespeichert, anschließend  wird ein Turtle Document für die `TopCollection` erstellt. Da eine `TopCollection` nicht ohne weitere Resourcen existieren darf, wird außerdem eine Resource mit einem Platzhalterbild erstellt.
+Wurden alle Pflichtfelder ausgefüllt, kann das Projekt exportiert werden. Alle konfigurierten Felder werden dabei als Projekteigenschaften gespeichert, anschließend  wird ein Turtle Document für die `TopCollection` erstellt. Da eine `TopCollection` nicht ohne weitere Ressourcen existieren darf, wird außerdem eine Ressource mit einem Platzhalterbild erstellt.
 
 Die Datensätze werden dann als `POST Request` oder `PUT Request` an ARCHE geschickt, je nachdem, ob es sich um einen neuen Datensatz oder um ein Update eines bestehenden Datensatzes handelt.
 
-![Expport durchführen](screen5_de.png)
+![Export durchführen](screen5_de.png)
 
 Die URI zur `TopCollection` wird anschließend ebenfalls in Goobi als Projekteigenschaft gespeichert.
 
@@ -64,7 +64,7 @@ Parameter               | Erläuterung
 `archeUrlPropertyName`  | Name der Eigenschaft, in der die URI der TopCollection in Goobi gespeichert wird
 `archeUrlPropertyName`  | Pfad zum Platzhalterbild
 `viewerUrl`             | URL zum Goobi viewer. Wird in den Turtle-Datensätzen verwendet, um auf den Goobi viewer zu verlinken.
-`exportFolder`          | Optionaler Order, in dem die generierten TTL Daten gespeichert werden können.
-`property`              | Hier wird ein einzelnes Feld für die Anlegemaskte definiert. Das Attribut `name` enthält den Namen der Eigenschaft. Es kann mittels messages-Mechanismus in verschiedene Sprachen übersetzt werden. In `default` kann ein vorausgewählter Wert eingetragen werden. Das Attribut `type` definiert das Verhalten des Feldes, mögliche Werte sind `text` für ein einzeliges Feld, `textarea` für eine mehrzeilige Textbox, `list` für Auswahllisten, `boolean` für Checkboxen und `date` für Datumsangaben. Mittels `ttlType` wird festgelegt, ob es sich im TTL um ein Literal oder um eine Resource handelt. 
+`exportFolder`          | Optionaler Ordner, in dem die generierten TTL Daten gespeichert werden können.
+`property`              | Hier wird ein einzelnes Feld für die Anlegemaske definiert. Das Attribut `name` enthält den Namen der Eigenschaft. Es kann mittels messages-Mechanismus in verschiedene Sprachen übersetzt werden. In `default` kann ein vorausgewählter Wert eingetragen werden. Das Attribut `type` definiert das Verhalten des Feldes, mögliche Werte sind `text` für ein einzeiliges Feld, `textarea` für eine mehrzeilige Textbox, `list` für Auswahllisten, `boolean` für Checkboxen und `date` für Datumsangaben. Mittels `ttlType` wird festgelegt, ob es sich im TTL um ein Literal oder um eine Ressource handelt. 
 `select`                | Bei Listen muss mit Hilfe dieses Unterlements definiert werden, welche Daten zur Auswahl stehen. Das Attribut `label` enthält eine anzuzeigende Beschreibung und in `value` steht der Wert, der tatsächlich im TTL verwendet wird.
 
