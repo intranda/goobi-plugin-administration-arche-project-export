@@ -15,8 +15,8 @@ Detail                      | Description
 **Plugin identifier**       | intranda_administration_arche_project_export
 **Plugin type**             | administration
 **Licence**                 | GPL 2.0 or newer
-**Documentation (German)**  | https://docs.goobi.io/workflow-plugins/v/ger/administration/goobi-plugin-administration-arche-project-export
-**Documentation (English)** | https://docs.goobi.io/workflow-plugins/v/eng/administration/goobi-plugin-administration-arche-project-export
+**Documentation (German)**  | https://docs.goobi.io/de/workflow/plugins/administration/goobi-plugin-administration-arche-project-export
+**Documentation (English)** | https://docs.goobi.io/en/workflow/plugins/administration/goobi-plugin-administration-arche-project-export
 
 ## Goobi details
 
