@@ -93,6 +93,12 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     docker start acdh-repo
     docker exec -ti acdh-repo /bin/bash
     
+    docker compose up -d
+    docker compose down
+    docker compose down -v
+    
+    docker exec -ti archetest-core-1 /bin/bash
+    
      */
 
     /**
@@ -299,7 +305,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                     }
                     Helper.setMeldung("Arche ingest successful");
                 } else {
-                    ArcheAPI.cancelTransaction(client, collectionUri, ti);
+                    ArcheAPI.cancelTransaction(client, archeConfiguration.getArcheApiUrl(), ti);
                     Helper.setMeldung("Arche validation successful");
                 }
                 //            if (collectionUri == null) {
