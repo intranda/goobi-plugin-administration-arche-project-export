@@ -10,6 +10,8 @@
     <project>
         <!-- project property name to store the arche url -->
         <archeUrlPropertyName>ArcheLocation</archeUrlPropertyName>
+        <!-- project property name to store the selected language -->
+        <languagePropertyName>DefaultProjectLanguage</languagePropertyName>
         <!-- default image for each project -->
         <placeholderImage>/opt/digiverso/goobi/xslt/logo.png</placeholderImage>
 

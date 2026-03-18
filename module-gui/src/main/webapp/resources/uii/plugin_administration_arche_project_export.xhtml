@@ -141,6 +141,22 @@
                                 </h:inputText>
                             </form:field>
 
+                            <!-- language selection -->
+                            <form:field
+                                label="#{msgs.spracheFuerMetadaten}"
+                                help="#{msgs.spracheFuerMetadaten}">
+                                <h:selectOneMenu
+                                    id="projectLanguage"
+                                    styleClass="form-select"
+                                    value="#{AdministrationForm.administrationPlugin.selectedProjectLanguage}">
+                                    <f:selectItems
+                                        value="#{AdministrationForm.administrationPlugin.possibleLanguages}"
+                                        var="val"
+                                        itemLabel="#{val.label}"
+                                        itemValue="#{val.value}" />
+                                </h:selectOneMenu>
+                            </form:field>
+
                             <!--  display configured properties -->
                             <ui:repeat
                                 var="property"
@@ -269,7 +285,7 @@
                                 aria-label="#{msgs.plugin_administration_arche_save_test}"
                                 class="btn btn-blank">
                                 <span>
-                                    <h:outputText value="#{msgs.plugin_administration_arche_save_test}" />
+                                    <h:outputText value="#{msgs.plugin_administration_arche_save}" />
                                 </span>
                             </button>
                         </section:footer>

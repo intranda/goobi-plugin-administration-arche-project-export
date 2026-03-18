@@ -84,6 +84,10 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
     @Getter
     private List<SelectItem> possibleLanguages;
 
+    @Getter
+    @Setter
+    private String selectedProjectLanguage;
+
     /*
     
     docker stop acdh-repo
@@ -132,6 +136,16 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                 String label = hc.getString("@label");
                 String value = hc.getString("@value");
                 possibleLanguages.add(new SelectItem(value, label));
+            }
+
+            // load selected language from project property
+            String languagePropertyName = archeConfiguration.getConfig().getString("/project/languagePropertyName", "ArcheLanguage");
+            selectedProjectLanguage = null;
+            for (GoobiProperty gp : selectedProject.getProperties()) {
+                if (languagePropertyName.equals(gp.getPropertyName())) {
+                    selectedProjectLanguage = gp.getPropertyValue();
+                    break;
+                }
             }
 
             // get configured property names
@@ -257,8 +271,24 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         try {
             for (ArcheProperty dp : displayProperties) {
                 dp.transfer();
-
             }
+
+            // save selected language as GoobiProperty
+            String languagePropertyName = archeConfiguration.getConfig().getString("/project/languagePropertyName", "ArcheLanguage");
+            GoobiProperty languageProp = null;
+            for (GoobiProperty gp : selectedProject.getProperties()) {
+                if (languagePropertyName.equals(gp.getPropertyName())) {
+                    languageProp = gp;
+                    break;
+                }
+            }
+            if (languageProp == null) {
+                languageProp = new GoobiProperty(PropertyOwnerType.PROJECT);
+                languageProp.setOwner(selectedProject);
+                languageProp.setPropertyName(languagePropertyName);
+                selectedProject.getProperties().add(languageProp);
+            }
+            languageProp.setPropertyValue(selectedProjectLanguage);
 
             ProjectManager.saveProject(selectedProject);
         } catch (DAOException e) {
