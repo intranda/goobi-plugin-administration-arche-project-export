@@ -37,17 +37,22 @@ Wenn das Plugin korrekt installiert und konfiguriert wurde, ist es innerhalb des
 
 Hier kann als erstes das zu nutzende Projekt ausgewählt werden. Anschließend werden einige Felder angezeigt. Die oberen Felder kommen direkt aus den Projekteinstellungen und können hier nicht verändert werden. Alle weiteren Felder und deren Verhalten lassen sich über die Konfigurationsdatei definieren.
 
+Darunter befindet sich ein Auswahlfeld für die Standardsprache der Metadaten des Projekts. Die verfügbaren Sprachoptionen werden aus dem Konfigurationsbereich `<languages>` geladen. Der gewählte Wert wird als Projekteigenschaft gespeichert und steht später als Standardsprache für Metadatenfelder zur Verfügung.
+
 ![Nutzeroberfläche des Plugins nach der Auswahl eines Projektes](screen4_de.png)
 
-Wurden alle Pflichtfelder ausgefüllt, kann das Projekt exportiert werden. Alle konfigurierten Felder werden dabei als Projekteigenschaften gespeichert, anschließend  wird ein Turtle Document für die `TopCollection` erstellt. Da eine `TopCollection` nicht ohne weitere Ressourcen existieren darf, wird außerdem eine Ressource mit einem Platzhalterbild erstellt.
+Wurden alle Pflichtfelder ausgefüllt, kann das Projekt gespeichert werden. Alle Felder werden dabei als Projekteigenschaften gespeichert, anschließend wird ein Turtle Document für die `TopCollection` erstellt. 
+Es stehen je nach Konfiguration drei Optionen des Export zur Verfügung:
+* Speichern der Datei in einem konfigurierten Verzeichnis.
+* Validierung der TTL gegen die ARCHE Validation API (doorkeeper)
+* Dateningest in Arche
+
+Da eine `TopCollection` nicht ohne weitere Ressourcen existieren darf, wird für den Fall, dass die Option zum Dateningest gewählt wurde, eine Ressource mit einem Platzhalterbild erstellt.
 
 Die Datensätze werden dann als `POST Request` oder `PUT Request` an ARCHE geschickt, je nachdem, ob es sich um einen neuen Datensatz oder um ein Update eines bestehenden Datensatzes handelt.
 
 ![Export durchführen](screen5_de.png)
 
-Die URI zur `TopCollection` wird anschließend ebenfalls in Goobi als Projekteigenschaft gespeichert.
-
-Für Debugging Zwecke können die Turtle Dokumente auch optional in ein konfigurierbares Serververzeichnis exportiert werden.
 
 ## Konfiguration
 Die Konfiguration des Plugins erfolgt in der Datei `plugin_intranda_administration_arche_project_export.xml` wie hier aufgezeigt:
@@ -58,13 +63,15 @@ Die folgende Tabelle enthält eine Zusammenstellung der Parameter und ihrer Besc
 
 Parameter               | Erläuterung
 ------------------------|------------------------------------
+`api/@enableValidation` | Aktiviert oder deaktiviert die Validierung der TTL Datei mittels ARCHE API
+`api/@enableIngest` | Aktiviert oder deaktiviert den Dateningest in ARCHE
 `archeApiUrl`           | URL zur REST API der ARCHE Instanz
 `archeUserName`         | Nutzername zur Authentifizierung an der API
 `archePassword`         | Passwort zur Authentifizierung an der API
-`archeUrlPropertyName`  | Name der Eigenschaft, in der die URI der TopCollection in Goobi gespeichert wird
-`archeUrlPropertyName`  | Pfad zum Platzhalterbild
-`viewerUrl`             | URL zum Goobi viewer. Wird in den Turtle-Datensätzen verwendet, um auf den Goobi viewer zu verlinken.
-`exportFolder`          | Optionaler Ordner, in dem die generierten TTL Daten gespeichert werden können.
-`property`              | Hier wird ein einzelnes Feld für die Anlegemaske definiert. Das Attribut `name` enthält den Namen der Eigenschaft. Es kann mittels messages-Mechanismus in verschiedene Sprachen übersetzt werden. In `default` kann ein vorausgewählter Wert eingetragen werden. Das Attribut `type` definiert das Verhalten des Feldes, mögliche Werte sind `text` für ein einzeiliges Feld, `textarea` für eine mehrzeilige Textbox, `list` für Auswahllisten, `boolean` für Checkboxen und `date` für Datumsangaben. Mittels `ttlType` wird festgelegt, ob es sich im TTL um ein Literal oder um eine Ressource handelt. 
+`placeholderImage`      | Pfad zum Platzhalterbild
+`languagePropertyName`  | Name der Projekteigenschaft, in der die gewählte Standardsprache gespeichert wird (Standard: `DefaultProjectLanguage`). Dieser Wert wird beim Export der Vorgänge als Default Sprache für Metadaten genutzt.
+`exportFolder`          | Verzeichnis, in dem die generierte TTL Datei gespeichert werden kann.
+`property`              | Hier wird ein einzelnes Feld für die Anlegemaske definiert. Das Attribut `name` enthält den Namen der Eigenschaft. Es kann mittels messages-Mechanismus in verschiedene Sprachen übersetzt werden. In `default` kann ein vorausgewählter Wert eingetragen werden. Das Attribut `type` definiert das Verhalten des Feldes, mögliche Werte sind `text` für ein einzeiliges Feld, `textarea` für eine mehrzeilige Textbox, `list` für Auswahllisten, `boolean` für Checkboxen und `date` für Datumsangaben. Mittels `ttlType` wird festgelegt, ob es sich im TTL um ein Literal oder um eine Ressource handelt. Das Attribut `languageField="true"` aktiviert zusätzlich ein Sprachauswahl-Dropdown für dieses Feld.
 `select`                | Bei Listen muss mit Hilfe dieses Unterlements definiert werden, welche Daten zur Auswahl stehen. Das Attribut `label` enthält eine anzuzeigende Beschreibung und in `value` steht der Wert, der tatsächlich im TTL verwendet wird.
+`language`              | Definiert eine einzelne Sprachoption für die Projektsprach-Auswahl und für Sprach-Dropdowns bei Feldern mit `languageField="true"`. Das Attribut `label` enthält die angezeigte Bezeichnung, `value` den iso-639 Sprachcode (z.B. `de`, `en`, `und`).
 
