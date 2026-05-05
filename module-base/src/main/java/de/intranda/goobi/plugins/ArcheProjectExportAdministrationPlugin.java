@@ -579,7 +579,15 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
 
             pp.setPattern(dp.getPattern());
 
-            displayProperties.add(pp);
+            int pos = 0;
+            for (ArcheProperty ap : displayProperties) {
+                pos++;
+                if (ap.equals(dp)) {
+                    break;
+                }
+            }
+            displayProperties.add(pos, pp);
+
             pp.setProzesseigenschaft(property);
             pp.setValue(property.getPropertyValue());
             pp.setContainer(property.getContainer());
