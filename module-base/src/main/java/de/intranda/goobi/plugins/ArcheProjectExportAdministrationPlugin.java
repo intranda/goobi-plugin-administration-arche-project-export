@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -529,6 +530,8 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
                         StreamSource xslt = new StreamSource(xsltPath);
 
                         TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                        transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                        transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
                         Transformer transformer = transformerFactory.newTransformer(xslt);
 
                         ByteArrayOutputStream csvOutputStream = new ByteArrayOutputStream();
