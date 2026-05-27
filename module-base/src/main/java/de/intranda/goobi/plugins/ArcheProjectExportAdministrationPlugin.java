@@ -452,7 +452,7 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         projectResource.addProperty(model.createProperty(model.getNsPrefixURI("acdh"), "hasUsedSoftware"), "Goobi");
 
         String query =
-                "select min(value), max(value) from metadata where name = 'PublicationYear' and processid in (select ProzesseId from prozesse where ProjekteID ="
+                "select min(CAST(value AS UNSIGNED)), max(CAST(value AS UNSIGNED)) from metadata where name = 'PublicationYear' and processid in (select ProzesseId from prozesse where ProjekteID ="
                         + selectedProject.getId() + ") and value REGEXP '^[0-9]+$' group by name;";
         @SuppressWarnings("unchecked")
         List<Object> results = ProcessManager.runSQL(query);
