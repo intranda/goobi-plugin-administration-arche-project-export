@@ -562,6 +562,22 @@ public class ArcheProjectExportAdministrationPlugin implements IAdministrationPl
         }
     }
 
+    public void removeField(ArcheProperty dp) {
+        if (dp == null) {
+            return;
+        }
+        long count = displayProperties.stream()
+                .filter(ap -> ap.getName().equals(dp.getName()))
+                .count();
+        if (count > 1) {
+            displayProperties.remove(dp);
+            selectedProject.getProperties().remove(dp.getProzesseigenschaft());
+        } else {
+            dp.setValue("");
+            dp.setSelectedLanguage("");
+        }
+    }
+
     public void duplicateField(ArcheProperty dp) {
 
         if (dp != null) {

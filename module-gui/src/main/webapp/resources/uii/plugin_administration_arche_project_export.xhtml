@@ -273,6 +273,14 @@
                                             title="#{msgs.duplicate}">
                                             <util:icon icon="plus" />
                                         </button>
+
+                                        <!-- remove row -->
+                                        <button
+                                            jsf:action="#{AdministrationForm.administrationPlugin.removeField(property)}"
+                                            class="btn btn-outline-secondary"
+                                            title="#{msgs.loeschen}">
+                                            <util:icon icon="minus" />
+                                        </button>
                                     </div>
                                 </form:field>
 
