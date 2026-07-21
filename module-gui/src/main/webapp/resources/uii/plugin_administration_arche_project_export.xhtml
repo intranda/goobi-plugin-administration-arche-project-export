@@ -18,12 +18,7 @@
         }
     </style>
     <h:panelGroup>
-        <h:panelGroup
-            rendered="#{!LoginForm.hasRole('Plugin_administration_arche_project_export')}"
-            styleClass="alert alert-danger"
-            layout="block">
-            #{msgs.plugin_administration_missingPermission} Plugin_administration_arche_project_export
-        </h:panelGroup>
+        <util:missing-rights rights="Plugin_administration_arche_project_export" rendered="true" />
 
         <ui:fragment rendered="#{LoginForm.hasRole('Plugin_administration_arche_project_export')}">
             <!-- select project to export -->
